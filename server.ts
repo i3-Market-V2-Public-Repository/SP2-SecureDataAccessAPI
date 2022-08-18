@@ -3,9 +3,7 @@ import * as express from 'express'
 import * as session from 'express-session'
 import * as http from 'http'
 import * as morgan from 'morgan'
-import getRoutesPromise from './routes/get.router'
-import postRoutesPromise from './routes/post.router'
-import nrpRoutesPromise from './routes/nrp.router'
+import batchRoutesPromise from './routes/batch.router'
 import * as crypto from 'crypto'
 import config from './config/config'
 import { errorMiddleware } from './middleware/error'
@@ -20,9 +18,7 @@ const main = async function (): Promise<void> {
   app.use(express.json())
   app.use(express.urlencoded({ extended: false }))
   app.use(morgan('dev'))
-  app.use('/get', await getRoutesPromise())
-  app.use('/name', await postRoutesPromise())
-  app.use('/', await nrpRoutesPromise())
+  app.use('/data-access/batch', await batchRoutesPromise())
   app.use(errorMiddleware)
 
   const server = http.createServer(app)
