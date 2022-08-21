@@ -9,3 +9,15 @@ export interface BatchRequest {
     blockId: string;
     blockAck: string;
 }
+
+export interface FeeRequest {
+    offeringId: string;
+    senderAddress: string;
+    providerAddress: string;
+}
+
+export interface PaymentBody {
+    senderAddress: string;
+    providerAddress: string;
+    amount: string;
+}

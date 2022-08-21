@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library'
 import * as sql from '../sqlite/sqlite'
+import { retrieveRawPaymentTransaction, retrievePrice } from '../common/common'
+import { PaymentBody } from '../types/openapi'
+
 //THIS WILL BE REMOVED AFTER TESTING
 const privateJwk:JWK = {
     kty: 'EC',
@@ -42,5 +45,22 @@ export async function getDaaPublicKey(req: Request, res: Response, next: NextFun
     } catch (error) {
         next(error)
     }
+}
 
+export async function payMarketFee(req: Request, res: Response, next: NextFunction) {
+    
+    try {
+        const offeringId = req.params.offeringId
+        const payment:PaymentBody = req.body
+
+        const amount = await retrievePrice(offeringId)
+        payment.amount = String(amount)
+
+        console.log(payment)
+        const rawPaymentTransaction = await retrieveRawPaymentTransaction(payment)
+
+        res.send(rawPaymentTransaction)
+    } catch (error) {
+        next(error)
+    }
 }

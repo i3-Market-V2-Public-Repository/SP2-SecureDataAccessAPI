@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { BatchRequest } from '../types/openapi';
+import { BatchRequest, FeeRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -47,6 +47,25 @@ export function dataExchangeAgreementReqProcessing (req: Request, res: Response,
   }
 
   res.locals = { input, rules, msg }
+
+  next()
+}
+
+export function feeReqProcessing (req: Request, res: Response, next: NextFunction) {
+
+  const input: FeeRequest = {
+      offeringId: req.params.offeringId,
+      senderAddress: req.body.senderAddress,
+      providerAddress: req.body.providerAddress
+    };
+  
+  const rules = {
+      'offeringId': 'required|string',
+      'senderAddress': 'required|string',
+      'providerAddress': 'required|string'
+    };
+
+  res.locals = { input, rules }
 
   next()
 }
