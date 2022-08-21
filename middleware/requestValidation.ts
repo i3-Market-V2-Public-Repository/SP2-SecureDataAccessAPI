@@ -1,21 +1,20 @@
 import { NextFunction, Request, Response } from 'express'
-import { Validator } from 'node-input-validator';
+import niv = require('node-input-validator');
 
+export function requestValidation(req: Request, res: Response, next: NextFunction) {
 
-function batchRequestValidation(req: Request, res: Response, next: NextFunction) {
+  niv.addCustomMessages(res.locals.msg);
 
-    const validator = new Validator(
-        res.locals.input,
-        res.locals.rules,
-      );
+  const validator = new niv.Validator(
+      res.locals.input,
+      res.locals.rules,
+  );
     
-    validator.check().then((matched) => {
-        if (!matched) {
-          res.status(422).send(validator.errors);
-        } else {
-            next()
-        }
-      });
+  validator.check().then((matched) => {
+      if (!matched) {
+        res.status(422).send(validator.errors);
+      } else {
+          next()
+      }
+    });
 }
-
-export { batchRequestValidation }

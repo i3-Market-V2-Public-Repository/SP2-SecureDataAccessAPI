@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express'
 import { BatchRequest } from '../types/openapi';
+import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
-
-function batchInputProcessing (req: Request, res: Response, next: NextFunction) {
+export function batchReqProcessing (req: Request, res: Response, next: NextFunction) {
 
     const input: BatchRequest = {
         data: req.params.data,
@@ -24,4 +24,29 @@ function batchInputProcessing (req: Request, res: Response, next: NextFunction) 
     next()
 }
 
-export { batchInputProcessing }
+export function dataExchangeAgreementReqProcessing (req: Request, res: Response, next: NextFunction) {
+
+  const input: DataExchangeAgreement = req.body
+  
+  const rules = {
+      'orig': 'required|object',
+      'encAlg': 'required|in:A128GCM,A256GCM',
+      'signingAlg': 'required|in:ES256,ES384,ES512',
+      'hashAlg': 'required|in:SHA-256,SHA-384,SHA-512',
+      'ledgerContractAddress': 'required|string',
+      'ledgerSignerAddress': 'required|string',
+      'pooToPorDelay': 'required|integer',
+      'pooToPopDelay': 'required|integer',
+      'pooToSecretDelay': 'required|integer'
+    };
+  
+  const msg = {
+      'encAlg.in': 'Must be A128GCM or A256GCM',
+      'signingAlg.in': 'Must be ES256, ES384 or ES512',
+      'hashAlg.in': 'Must be SHA-256, SHA-384 or SHA-512'
+  }
+
+  res.locals = { input, rules, msg }
+
+  next()
+}
