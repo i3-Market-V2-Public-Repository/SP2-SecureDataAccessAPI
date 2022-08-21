@@ -7,9 +7,10 @@ import batchRoutesPromise from './routes/batch.router'
 import * as crypto from 'crypto'
 import config from './config/config'
 import { errorMiddleware } from './middleware/error'
+import { initializeDb } from './sqlite/initializeDatabase'
 
 const main = async function (): Promise<void> {
-  const app = express()
+  const app = express();
   app.use(session({
     secret: crypto.randomBytes(32).toString('base64'),
     resave: false,
@@ -21,8 +22,10 @@ const main = async function (): Promise<void> {
   app.use('/data-access/batch', await batchRoutesPromise())
   app.use(errorMiddleware)
 
-  const server = http.createServer(app)
-  const { addr, port } = config.server
+  await initializeDb()
+  
+  const server = http.createServer(app);
+  const { addr, port } = config.server;
   server.listen(port, addr)
 
   server.on('listening', function (): void {

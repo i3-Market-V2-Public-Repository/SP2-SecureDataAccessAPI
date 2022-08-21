@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
-import { BatchInput } from '../types/openapi';
+import { BatchRequest } from '../types/openapi';
 
 
 
-const batchInputProcessing = async (req: Request, res: Response, next: NextFunction) => {
+function batchInputProcessing (req: Request, res: Response, next: NextFunction) {
 
-    const input: BatchInput = {
+    const input: BatchRequest = {
         data: req.params.data,
         agreementId: Number(req.params.agreementId),
         blockId: req.body.blockId,

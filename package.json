@@ -19,7 +19,9 @@
     "morgan": "^1.10.0",
     "node-input-validator": "^4.5.0",
     "nodemon": "^2.0.19",
-    "openid-client": "^4.4.0"
+    "openid-client": "^4.4.0",
+    "sqlite": "^4.1.2",
+    "sqlite3": "^5.0.11"
   },
   "devDependencies": {
     "@i3m/non-repudiation-library": "^1.0.4",

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { Validator } from 'node-input-validator';
 
 
-const inputValidation = async (req: Request, res: Response, next: NextFunction) => {
+function batchRequestValidation(req: Request, res: Response, next: NextFunction) {
 
     const validator = new Validator(
         res.locals.input,
@@ -18,4 +18,4 @@ const inputValidation = async (req: Request, res: Response, next: NextFunction) 
       });
 }
 
-export default { inputValidation: inputValidation }
+export { batchRequestValidation }

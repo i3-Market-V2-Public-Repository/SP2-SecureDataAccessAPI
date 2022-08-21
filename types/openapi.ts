@@ -3,7 +3,7 @@ export interface ApiError {
     description: string;
 }
 
-export interface BatchInput {
+export interface BatchRequest {
     data: string;
     agreementId: number;
     blockId: string;

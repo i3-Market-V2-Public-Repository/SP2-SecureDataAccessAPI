@@ -5,7 +5,7 @@ import { ApiError } from '../types/openapi'
 export function errorMiddleware (err: HttpError, req: Request, res: Response, next: NextFunction): void {
     let error: ApiError = {
       name: 'error',
-      description: 'this is an error, unfortunately'
+      description: 'Something went wrong'
     }
     if (err.status === undefined) {
       console.error(err)

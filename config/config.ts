@@ -1,14 +1,11 @@
 import { randomFillSync } from 'crypto'
 import { ClientMetadata } from 'openid-client'
-import * as path from 'path'
+import { env } from './env'
 
-const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
-
-const port = Number(process.env.PORT) ?? 3000
 const server = {
-  addr: '0.0.0.0',
-  port,
-  publicUri: process.env.PUBLIC_URI ?? `http://localhost:${port}` // It SHOULD BE https when using a public server
+  addr: env.addr,
+  port: env.port,
+  publicUri: env.publicUri
 }
 
 interface OidcConfig {
@@ -30,7 +27,7 @@ const oidcConfig: OidcConfig = {
 }
 
 const api = {
-  allowedOrigin: server.publicUri // The domain allowed to connect to this sercer with JS, eg 'http://localhost:3000'
+  allowedOrigin: server.publicUri // The domain allowed to connect to this server with JS, eg 'http://localhost:3000'
 }
 
 const jwt = {

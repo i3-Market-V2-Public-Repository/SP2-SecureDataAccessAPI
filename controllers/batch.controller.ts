@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
 import npsession from '../session/np.session'
 
-const poo = async(req: Request, res: Response, next: NextFunction) => {
+async function poo (req: Request, res: Response, next: NextFunction) {
     try {
         const privateJwks = await nonRepudiationLibrary.generateKeys('ES256')
         const publicJwk = JSON.stringify(privateJwks.publicJwk)
@@ -58,7 +58,7 @@ const poo = async(req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const por = (req: Request, res: Response, next: NextFunction) => {
+function por (req: Request, res: Response, next: NextFunction) {
     try {
         const npProvider:nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = npsession.get("3412fwe1df")
         console.log(npProvider.block)
