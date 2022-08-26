@@ -1,13 +1,15 @@
 import * as express from 'express'
-import *  as nrpController from '../controllers/batch.controller'
+import * as requestProcess from '../middleware/requestProcess'
+import { requestValidation } from '../middleware/requestValidation'
+import *  as batchController from '../controllers/batch.controller'
 require('isomorphic-fetch');
 
 const batchRouter = express.Router()
 
 export default async (): Promise<typeof batchRouter> => {
 
-    batchRouter.get('/poo', nrpController.poo)
-    batchRouter.post('/por', nrpController.por)
+    batchRouter.post('/:data/:agreementId', requestProcess.batchReqProcessing, requestValidation, batchController.poo)
+    batchRouter.post('/pop', batchController.pop)
     
     return batchRouter
 }

@@ -19,7 +19,7 @@ export function batchReqProcessing (req: Request, res: Response, next: NextFunct
         'blockAck': 'required|hash:sha256',
       };
 
-    res.locals = { input, rules }
+    res.locals.reqParams = { input, rules }
 
     next()
 }
@@ -46,7 +46,7 @@ export function dataExchangeAgreementReqProcessing (req: Request, res: Response,
       'hashAlg.in': 'Must be SHA-256, SHA-384 or SHA-512'
   }
 
-  res.locals = { input, rules, msg }
+  res.locals.reqParams = { input, rules, msg }
 
   next()
 }
@@ -65,7 +65,7 @@ export function feeReqProcessing (req: Request, res: Response, next: NextFunctio
       'providerAddress': 'required|string'
     };
 
-  res.locals = { input, rules }
+  res.locals.reqParams = { input, rules }
 
   next()
 }

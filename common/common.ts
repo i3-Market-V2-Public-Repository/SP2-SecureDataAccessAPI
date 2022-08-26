@@ -1,5 +1,6 @@
 import { env } from "../config/env";
 import { PaymentBody } from "../types/openapi";
+import { Agreement } from '../types/openapi';
 
 export async function retrieveRawPaymentTransaction (payment: PaymentBody) {
 
@@ -30,4 +31,23 @@ export async function retrievePrice (offeringId: string) {
     const price = offering.hasPricingModel.basicPrice
 
     return price
+}
+
+export async function getAgreement (agreementId: number) {
+
+    const request = await fetch(`${env.smartContractManager}/get_agreement/${agreementId}`, {
+          method: 'GET',
+          headers: {
+              'Accept': '*/*'
+          },
+    });
+    const agreement = await request.json();
+
+    return agreement
+}
+
+export function getTimestamp() {
+    const currentDate = new Date();
+    const dateFormat = `${currentDate.getFullYear()}` +  '-' + ("0" + (currentDate.getMonth() + 1)).slice(-2) + '-' + ("0" + currentDate.getDate()).slice(-2) 
+    return dateFormat;
 }

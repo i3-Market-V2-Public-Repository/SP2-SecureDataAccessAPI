@@ -1,4 +1,4 @@
-import { openDb, createTables, insertIntoTb, verifyIfTbRowsExist } from "./sqlite";
+import { openDb, createTables } from "./sqlite";
 import { env } from '../config/env'
 
 export async function initializeDb() {
@@ -10,7 +10,11 @@ export async function initializeDb() {
 
     const db = await openDb()
     await createTables(db)
-    const verify = await verifyIfTbRowsExist(select, params, db)
-    await insertIntoTb(verify, insert, params, db)
+    const selectResult = await db.all(select, params)
+
+    if (selectResult.length === 0) {    
+        await db.run(insert, params)
+    }
+    
     await db.close()
 }

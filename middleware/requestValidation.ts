@@ -6,8 +6,8 @@ export function requestValidation(req: Request, res: Response, next: NextFunctio
   niv.addCustomMessages(res.locals.msg);
 
   const validator = new niv.Validator(
-      res.locals.input,
-      res.locals.rules,
+      res.locals.reqParams.input,
+      res.locals.reqParams.rules,
   );
     
   validator.check().then((matched) => {

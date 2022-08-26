@@ -27,17 +27,24 @@ export async function getDaaPublicKey(req: Request, res: Response, next: NextFun
     try {
         const dataExchangeAgreement: DataExchangeAgreement = req.body
         const consumerPublicKey = dataExchangeAgreement.orig
+        
+        dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
         dataExchangeAgreement.dest = JSON.stringify(publicJwk)
 
         const db = await sql.openDb()
 
         const insert = 'INSERT INTO DataExchangeAgreements(ConsumerPublicKey, ProviderPublicKey, ProviderPrivateKey, DataExchangeAgreement) VALUES (?, ?, ?, ?)'
         const select = 'SELECT * FROM DataExchangeAgreements WHERE DataExchangeAgreement=?'
+
         const insertParams = [JSON.stringify(consumerPublicKey), JSON.stringify(publicJwk), JSON.stringify(privateJwk), JSON.stringify(dataExchangeAgreement)]
         const selectParams = [JSON.stringify(dataExchangeAgreement)]
         
-        const verify = await sql.verifyIfTbRowsExist(select, selectParams, db)
-        await sql.insertIntoTb(verify, insert, insertParams, db)
+        const selectResult = await db.all(select, selectParams, db)
+
+        if (selectResult.length === 0) {    
+            await db.run(insert, insertParams)
+        }
+
         await db.close()
         
         res.send(publicJwk)

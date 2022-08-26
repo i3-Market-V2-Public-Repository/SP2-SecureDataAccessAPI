@@ -30,20 +30,28 @@ export async function createTables(db: Database<sqlite3.Database, sqlite3.Statem
 
 //await db.run('INSERT INTO DataSpaceUsers(User, Password) VALUES (?, ?)', [env.dataSpaceUser, env.dataSpacePassword])
 //'SELECT * FROM DataSpaceUsers WHERE User=? AND Password=?', env.dataSpaceUser, env.dataSpacePassword
-export async function insertIntoTb(exists: boolean, insert: string, params: any [], db: Database<sqlite3.Database, sqlite3.Statement>){
 
-    if(!exists) {
-        await db.run(insert, params)
-    }
-}
+// export async function insertIntoTb(exists: boolean, insert: string, params: any [], db: Database<sqlite3.Database, sqlite3.Statement>){
 
-export async function verifyIfTbRowsExist(select: string, params: string[], db: Database<sqlite3.Database, sqlite3.Statement>) {
+//     if(!exists) {
+//         await db.run(insert, params)
+//     }
+// }
 
-    const result = await db.all(select, params)
+// export async function verifyIfTbRowsExist(select: string, params: string[], db: Database<sqlite3.Database, sqlite3.Statement>) {
 
-    if (result.length === 0){
-        return false
-    } else {
-        return true
-    }
-}
+//     const result = await db.all(select, params)
+
+//     if (result.length === 0){
+//         return false
+//     } else {
+//         return true
+//     }
+// }
+
+// export async function getFromTb(select: string, params: string[], db: Database<sqlite3.Database, sqlite3.Statement>) {
+    
+//     const result = await db.get(select, params)
+
+//     return result
+// }
