@@ -3,7 +3,7 @@ import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import npsession from '../session/np.session';
 import { env } from '../config/env';
 import { BatchRequest, Agreement } from '../types/openapi';
-import { getAgreement, getTimestamp } from '../common/common';
+import { getAgreement, getTimestamp, fetchSignedResolution } from '../common/common';
 import { openDb } from '../sqlite/sqlite'
 import { HttpError } from 'express-openapi-validator/dist/framework/types'
 import { SessionSchema } from '../types/openapi'
@@ -44,20 +44,17 @@ async function poo (req: Request, res: Response, next: NextFunction) {
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
         await db.close()
         
-        console.log(providerPrivateKey)
-        console.log(dataExchangeAgreement)
-
         const block = '{msg:"test"}'
         let buf = Buffer.from(block)
 
         const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, buf, providerDltSigningKeyHex)
         
         const poo = await npProvider.generatePoO()
-        const nrpBlock = npProvider.block.jwe
+        const cipherBlock = npProvider.block.jwe
 
         const response = {
             poo : poo.jws,
-            block: nrpBlock
+            cipherBlock: cipherBlock
         }
 
         npsession.set("3412fwe1df", batchReqParams.agreementId, npProvider)
@@ -75,19 +72,20 @@ async function pop (req: Request, res: Response, next: NextFunction) {
 
         const npProvider:nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.npProvider
         await npProvider.verifyPoR(por)
-
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
+
+        const verificationRequest = await npProvider.generateVerificationRequest()
 
         const consumerId = session.consumerId
         const agreementId = session.agreementId
         const timestamp = getTimestamp()
-        const exchangeId = poo.payload.exchange.id
+        const exchangeId = poo?.payload.exchange.id
 
-        const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        const select = 'SELECT * FROM DataSpaceUsers WHERE Pop=?'
-        const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo, por, pop]
-        const selectParams = [pop]
+        const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        const select = 'SELECT * FROM Accounting WHERE Pop=?'
+        const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest]
+        const selectParams = [pop.jws]
 
         const db = await openDb()
         const selectResult = await db.all(select, selectParams)

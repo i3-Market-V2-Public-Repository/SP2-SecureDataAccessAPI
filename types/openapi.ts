@@ -8,6 +8,7 @@ export interface ApiError {
 export interface BatchRequest {
     data: string;
     agreementId: number;
+    signature: string;
     blockId: string;
     blockAck: string;
 }
@@ -69,4 +70,12 @@ export interface SessionSchema {
     npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig,
     consumerId: string,
     agreementId: number
+}
+
+export interface VerificationRequest {
+    verificationRequest: string;
+}
+
+export interface ListOfVerificationRequest {
+    agreementId: number;
 }

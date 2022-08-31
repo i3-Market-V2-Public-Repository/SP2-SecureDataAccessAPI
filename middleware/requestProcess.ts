@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { BatchRequest, FeeRequest } from '../types/openapi';
+import { BatchRequest, FeeRequest, ListOfVerificationRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -8,6 +8,7 @@ export function batchReqProcessing (req: Request, res: Response, next: NextFunct
     const input: BatchRequest = {
         data: req.params.data,
         agreementId: Number(req.params.agreementId),
+        signature: req.params.signature,
         blockId: req.body.blockId,
         blockAck: req.body.blockAck
       };
@@ -15,6 +16,7 @@ export function batchReqProcessing (req: Request, res: Response, next: NextFunct
     const rules = {
         'data': 'required|string',
         'agreementId': 'required|integer',
+        'signature': 'required|string',
         'blockId': 'required|hash:sha256',
         'blockAck': 'required|hash:sha256',
       };
@@ -63,6 +65,36 @@ export function feeReqProcessing (req: Request, res: Response, next: NextFunctio
       'offeringId': 'required|string',
       'senderAddress': 'required|string',
       'providerAddress': 'required|string'
+    };
+
+  res.locals.reqParams = { input, rules }
+
+  next()
+}
+
+export function verificationReqProcessing (req: Request, res: Response, next: NextFunction) {
+
+  const input: VerificationRequest = {
+      verificationRequest: req.body.verificationRequest
+    };
+  
+  const rules = {
+      'verificationRequest': 'required|string',
+    };
+
+  res.locals.reqParams = { input, rules }
+
+  next()
+}
+
+export function listOfVerificationReqProcessing (req: Request, res: Response, next: NextFunction) {
+
+  const input: ListOfVerificationRequest = {
+      agreementId: Number(req.params.agreementId)
+    };
+  
+  const rules = {
+      'agreementId': 'required|integer',
     };
 
   res.locals.reqParams = { input, rules }

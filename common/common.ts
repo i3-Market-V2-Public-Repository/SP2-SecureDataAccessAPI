@@ -1,6 +1,7 @@
 import { env } from "../config/env";
 import { PaymentBody } from "../types/openapi";
 import { Agreement } from '../types/openapi';
+import 'isomorphic-fetch';
 
 export async function retrieveRawPaymentTransaction (payment: PaymentBody) {
 
@@ -31,6 +32,24 @@ export async function retrievePrice (offeringId: string) {
     const price = offering.hasPricingModel.basicPrice
 
     return price
+}
+
+export async function fetchSignedResolution (verificationRequest: string) {
+
+    const verification = await fetch(`${env.backplaneUrl}/conflictResolverService/verification`, {
+          method: 'POST',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({"verificationRequest": verificationRequest}),
+    });
+    const resolution = await verification.json();
+    console.log(JSON.stringify({"verificationRequest": verificationRequest}))
+    console.log(JSON.stringify(resolution))
+    const signedResolution = resolution.signedResolution
+
+    return signedResolution
 }
 
 export async function getAgreement (agreementId: number) {
