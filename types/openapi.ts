@@ -79,3 +79,52 @@ export interface VerificationRequest {
 export interface ListOfVerificationRequest {
     agreementId: number;
 }
+
+export interface BatchDaaResponse {
+    blockId: string;
+    nextBlockId: string;
+    poo: string;
+    cipherBlock: string;
+    transactionObject?: TransactionObject;
+}
+
+export interface ResponseData {
+    data: Buffer;
+    nextBlockId: string;
+}
+
+export interface JsonMapOfData {
+    records: Record<string, string>[];
+}
+
+export interface TransactionObject {
+    transactionObject: TransactionObjectClass;
+}
+
+export interface TransactionObjectClass {
+    blockHash:         string;
+    blockNumber:       number;
+    contractAddress:   null;
+    cumulativeGasUsed: number;
+    from:              string;
+    gasUsed:           number;
+    logs:              Log[];
+    logsBloom:         string;
+    status:            boolean;
+    to:                string;
+    transactionHash:   string;
+    transactionIndex:  number;
+}
+
+export interface Log {
+    address:          string;
+    topics:           string[];
+    data:             string;
+    blockNumber:      number;
+    transactionHash:  string;
+    transactionIndex: number;
+    blockHash:        string;
+    logIndex:         number;
+    removed:          boolean;
+    id:               string;
+}

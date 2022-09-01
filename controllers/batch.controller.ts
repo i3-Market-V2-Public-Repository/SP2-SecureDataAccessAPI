@@ -2,11 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import npsession from '../session/np.session';
 import { env } from '../config/env';
-import { BatchRequest, Agreement } from '../types/openapi';
-import { getAgreement, getTimestamp, fetchSignedResolution } from '../common/common';
+import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData } from '../types/openapi';
+import { getAgreement, getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
 import { openDb } from '../sqlite/sqlite'
 import { HttpError } from 'express-openapi-validator/dist/framework/types'
 import { SessionSchema } from '../types/openapi'
+import * as fs from 'fs'
 
 async function poo (req: Request, res: Response, next: NextFunction) {
     try {
@@ -21,9 +22,13 @@ async function poo (req: Request, res: Response, next: NextFunction) {
 
         const batchReqParams:BatchRequest = res.locals.reqParams.input
         const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
-
-        console.log(agreement.consumerPublicKey)
-
+        const signature = batchReqParams.signature
+        const blockId = batchReqParams.blockId
+        const blockAck = batchReqParams.blockAck
+        const data = batchReqParams.data
+        const resourceMapPath = `./data/${data}.json`
+        const resourcePath = `./data/${data}`
+        
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
         const params = [agreement.consumerPublicKey, agreement.providerPublicKey]
 
@@ -44,22 +49,56 @@ async function poo (req: Request, res: Response, next: NextFunction) {
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
         await db.close()
         
-        const block = '{msg:"test"}'
-        let buf = Buffer.from(block)
+        if (fs.existsSync(resourcePath)) {
+            console.log('The resource exists')
+  
+            if (blockId == 'null'){
 
-        const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, buf, providerDltSigningKeyHex)
-        
-        const poo = await npProvider.generatePoO()
-        const cipherBlock = npProvider.block.jwe
+                const check = checkFile(resourceMapPath, resourcePath);
+                console.log('File checked')
+  
+            }
+            const map = fs.readFileSync(resourceMapPath, 'utf8');
+            const jsonMapOfData: JsonMapOfData = JSON.parse(map);
 
-        const response = {
-            poo : poo.jws,
-            cipherBlock: cipherBlock
+            if (blockId === 'null' && blockAck === 'null'){
+
+                const index = Object.keys(jsonMapOfData.records[0])
+
+                const nextBlockId = index[0]
+                const batchDaaResponse: BatchDaaResponse = {blockId: "null", nextBlockId: nextBlockId, poo: "null", cipherBlock: "null"}
+
+                console.log(`Daa response is ${batchDaaResponse}`)
+
+                res.send(batchDaaResponse)
+
+            } else if ((blockId != 'null' && blockAck == 'null') || (blockId != 'null' && blockAck != 'null')) {
+
+                  const response = await responseData(blockId, jsonMapOfData, resourcePath);
+                  const rawBufferData = response.data
+                  const nextBlockId = response.nextBlockId
+
+                  console.log('Buffer size: ' + rawBufferData.length)
+    
+                  const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
+
+                  const poo = await npProvider.generatePoO()
+                  const cipherBlock = npProvider.block.jwe
+
+                  const batchDaaResponse: BatchDaaResponse = {blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock}
+                  
+                  npsession.set("3412fwe1df", batchReqParams.agreementId, npProvider)
+                  
+                  res.send(batchDaaResponse)
+
+             } else if (blockId == 'null' && blockAck != 'null'){
+
+                const transactionObject = await deployRawPaymentTransaction(signature)
+                const batchDaaResponse: BatchDaaResponse = {blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null", "transactionObject":transactionObject}
+
+                res.send(batchDaaResponse);
+          }
         }
-
-        npsession.set("3412fwe1df", batchReqParams.agreementId, npProvider)
-
-        res.send(response)
     } catch (error) {
             next(error) 
     }

@@ -5,6 +5,7 @@ const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '../.env
 const port = 3000
 
 export const env = {
+    blockSize: Number(process.env.BLOCK_SIZE) ?? 256,
     addr: String(process.env.ADDR),
     port: Number(process.env.PORT) ?? port,
     publicUri: String(process.env.PUBLIC_URI) ?? `http://localhost:${port}`,
