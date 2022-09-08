@@ -1,4 +1,6 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
+import { Request } from "express"
+import { TokenSet } from 'openid-client';
 
 export interface ApiError {
     name: string;
@@ -26,44 +28,44 @@ export interface PaymentBody {
 }
 
 export interface Agreement {
-    agreementId:               number;
-    providerPublicKey:         string;
-    consumerPublicKey:         string;
+    agreementId: number;
+    providerPublicKey: string;
+    consumerPublicKey: string;
     dataExchangeAgreementHash: string;
-    dataOffering:              DataOffering;
-    purpose:                   string;
-    state:                     number;
-    providerId:                string;
-    consumerId:                string;
-    agreementDates:            number[];
-    intendedUse:               IntendedUse;
-    licenseGrant:              LicenseGrant;
-    dataStream:                boolean;
-    signed:                    boolean;
-    violation:                 Array<ViolationClass | number | string>;
+    dataOffering: DataOffering;
+    purpose: string;
+    state: number;
+    providerId: string;
+    consumerId: string;
+    agreementDates: number[];
+    intendedUse: IntendedUse;
+    licenseGrant: LicenseGrant;
+    dataStream: boolean;
+    signed: boolean;
+    violation: Array<ViolationClass | number | string>;
 }
 
 export interface DataOffering {
-    dataOfferingId:      string;
+    dataOfferingId: string;
     dataOfferingVersion: number;
 }
 
 export interface IntendedUse {
-    processData:             boolean;
+    processData: boolean;
     shareDataWithThirdParty: boolean;
-    editData:                boolean;
+    editData: boolean;
 }
 
 export interface LicenseGrant {
-    copydata:      boolean;
-    transferable:  boolean;
+    copydata: boolean;
+    transferable: boolean;
     exclusiveness: boolean;
-    revocable:     boolean;
+    revocable: boolean;
 }
 
 export interface ViolationClass {
     violationType: number;
-    issuerId:      string;
+    issuerId: string;
 }
 
 export interface SessionSchema {
@@ -102,29 +104,38 @@ export interface TransactionObject {
 }
 
 export interface TransactionObjectClass {
-    blockHash:         string;
-    blockNumber:       number;
-    contractAddress:   null;
+    blockHash: string;
+    blockNumber: number;
+    contractAddress: null;
     cumulativeGasUsed: number;
-    from:              string;
-    gasUsed:           number;
-    logs:              Log[];
-    logsBloom:         string;
-    status:            boolean;
-    to:                string;
-    transactionHash:   string;
-    transactionIndex:  number;
+    from: string;
+    gasUsed: number;
+    logs: Log[];
+    logsBloom: string;
+    status: boolean;
+    to: string;
+    transactionHash: string;
+    transactionIndex: number;
 }
 
 export interface Log {
-    address:          string;
-    topics:           string[];
-    data:             string;
-    blockNumber:      number;
-    transactionHash:  string;
+    address: string;
+    topics: string[];
+    data: string;
+    blockNumber: number;
+    transactionHash: string;
     transactionIndex: number;
-    blockHash:        string;
-    logIndex:         number;
-    removed:          boolean;
-    id:               string;
+    blockHash: string;
+    logIndex: number;
+    removed: boolean;
+    id: string;
+}
+
+export interface JwtClaims {
+    sub: string;
+    scope: string;
+}
+
+export interface PopRequest {
+    por: string;
 }

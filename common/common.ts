@@ -4,6 +4,9 @@ import { Agreement } from '../types/openapi';
 import * as fs from 'fs'
 import * as crypto from 'crypto'
 import 'isomorphic-fetch';
+import { JwtClaims } from '../types/openapi';
+import config from '../config/config'
+import * as jwt from 'jsonwebtoken'
 
 export async function retrieveRawPaymentTransaction (payment: PaymentBody) {
 
@@ -183,7 +186,7 @@ export function mapData(resourceMapPath: string, resourcePath: string){
 }
 
 export async function deployRawPaymentTransaction(signature: string) {
-    
+
     const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/deploy-signed-transaction`, {
           method: 'POST',
           headers: {
@@ -196,4 +199,15 @@ export async function deployRawPaymentTransaction(signature: string) {
     console.log(transactionObject)
 
     return transactionObject
+}
+
+export function _createJwt (claims: JwtClaims): string {
+    /** This is what ends up in our JWT */
+    const jwtClaims = {
+      iss: config.jwt.iss,
+      aud: config.jwt.aud,
+      exp: Math.floor(Date.now() / 1000) + 86400, // 1 day (24×60×60=86400s) from now
+      ...claims
+    }
+    return jwt.sign(jwtClaims, config.jwt.secret)
 }

@@ -1,34 +1,40 @@
-import { NextFunction, Request, Response } from 'express';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
-import npsession from '../session/np.session';
+import * as fs from 'fs'
+import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
 import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData } from '../types/openapi';
 import { getAgreement, getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
 import { openDb } from '../sqlite/sqlite'
 import { HttpError } from 'express-openapi-validator/dist/framework/types'
 import { SessionSchema } from '../types/openapi'
-import * as fs from 'fs'
+import jwtDecode, { JwtPayload } from "jwt-decode";
+import npsession from '../session/np.session';
 
-async function poo (req: Request, res: Response, next: NextFunction) {
+async function poo(req: Request, res: Response, next: NextFunction) {
     try {
 
         // Let us define the RPC endopint to the ledger (just in case we don't want to use the default one)
         const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
             rpcProviderUrl: env.rpcProviderUrl
         }
-                  
+
         // We are going to directly provide the private key associated to the dataExchange.ledgerSignerAddress. You could also have pass a DltSigner instance to dltConfig.signer in order to use an externam Wallet, such as the i3-MARKET one
         const providerDltSigningKeyHex = env.providerDltSigningKeyHex
 
-        const batchReqParams:BatchRequest = res.locals.reqParams.input
+        const batchReqParams: BatchRequest = res.locals.reqParams.input
         const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
+
         const signature = batchReqParams.signature
         const blockId = batchReqParams.blockId
         const blockAck = batchReqParams.blockAck
         const data = batchReqParams.data
+
+        const bearerToken = req.header('authorization')?.replace("Bearer ", "")
+        const decoded = jwtDecode<JwtPayload>(bearerToken!)
+
         const resourceMapPath = `./data/${data}.json`
         const resourcePath = `./data/${data}`
-        
+
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
         const params = [agreement.consumerPublicKey, agreement.providerPublicKey]
 
@@ -48,25 +54,25 @@ async function poo (req: Request, res: Response, next: NextFunction) {
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
         await db.close()
-        
+
         if (fs.existsSync(resourcePath)) {
             console.log('The resource exists')
-  
-            if (blockId == 'null'){
+
+            if (blockId == 'null') {
 
                 const check = checkFile(resourceMapPath, resourcePath);
                 console.log('File checked')
-  
+
             }
             const map = fs.readFileSync(resourceMapPath, 'utf8');
             const jsonMapOfData: JsonMapOfData = JSON.parse(map);
 
-            if (blockId === 'null' && blockAck === 'null'){
+            if (blockId === 'null' && blockAck === 'null') {
 
                 const index = Object.keys(jsonMapOfData.records[0])
 
                 const nextBlockId = index[0]
-                const batchDaaResponse: BatchDaaResponse = {blockId: "null", nextBlockId: nextBlockId, poo: "null", cipherBlock: "null"}
+                const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: nextBlockId, poo: "null", cipherBlock: "null" }
 
                 console.log(`Daa response is ${batchDaaResponse}`)
 
@@ -74,42 +80,55 @@ async function poo (req: Request, res: Response, next: NextFunction) {
 
             } else if ((blockId != 'null' && blockAck == 'null') || (blockId != 'null' && blockAck != 'null')) {
 
-                  const response = await responseData(blockId, jsonMapOfData, resourcePath);
-                  const rawBufferData = response.data
-                  const nextBlockId = response.nextBlockId
+                const response = await responseData(blockId, jsonMapOfData, resourcePath);
+                const rawBufferData = response.data
+                const nextBlockId = response.nextBlockId
 
-                  console.log('Buffer size: ' + rawBufferData.length)
-    
-                  const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
+                console.log('Buffer size: ' + rawBufferData.length)
 
-                  const poo = await npProvider.generatePoO()
-                  const cipherBlock = npProvider.block.jwe
+                const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
 
-                  const batchDaaResponse: BatchDaaResponse = {blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock}
-                  
-                  npsession.set("3412fwe1df", batchReqParams.agreementId, npProvider)
-                  
-                  res.send(batchDaaResponse)
+                const poo = await npProvider.generatePoO()
+                const cipherBlock = npProvider.block.jwe
 
-             } else if (blockId == 'null' && blockAck != 'null'){
+                const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
+
+                npsession.set(decoded.sub!, batchReqParams.agreementId, npProvider)
+
+                res.send(batchDaaResponse)
+
+            } else if (blockId == 'null' && blockAck != 'null') {
 
                 const transactionObject = await deployRawPaymentTransaction(signature)
-                const batchDaaResponse: BatchDaaResponse = {blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null", "transactionObject":transactionObject}
+                const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null", "transactionObject": transactionObject }
 
                 res.send(batchDaaResponse);
-          }
+            }
+        } else {
+            const error = {
+                status: 404,
+                path: 'batch.controller.poo',
+                name: 'Not found',
+                message: `Cant find ${data}.`
+            }
+            throw new HttpError(error)
         }
     } catch (error) {
-            next(error) 
+        next(error)
     }
 }
 
-async function pop (req: Request, res: Response, next: NextFunction) {
+async function pop(req: Request, res: Response, next: NextFunction) {
     try {
-        const por = req.body.por
-        const session: SessionSchema = npsession.get("3412fwe1df")
 
-        const npProvider:nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.npProvider
+        const por = req.body.por
+
+        const bearerToken = req.header('authorization')?.replace("Bearer ", "")
+        const decoded = jwtDecode<JwtPayload>(bearerToken!)
+
+        const session: SessionSchema = npsession.get(decoded.sub!)
+
+        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.npProvider
         await npProvider.verifyPoR(por)
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
@@ -128,16 +147,16 @@ async function pop (req: Request, res: Response, next: NextFunction) {
 
         const db = await openDb()
         const selectResult = await db.all(select, selectParams)
-    
-        if (selectResult.length === 0) {    
+
+        if (selectResult.length === 0) {
             await db.run(insert, insertParams)
         }
 
         npsession.set(consumerId, agreementId, npProvider)
-        
+
         res.send(pop)
     } catch (error) {
-        next(error)   
+        next(error)
     }
 }
 
