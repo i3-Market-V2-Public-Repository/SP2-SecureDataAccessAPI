@@ -10,6 +10,7 @@ export default async (): Promise<typeof dataTransferReportRouter> => {
 
     dataTransferReportRouter.post('/nrpCompletenessCheck', requestProcess.verificationReqProcessing, requestValidation, dataTransferReportController.nrpCompletenessCheck)
     dataTransferReportRouter.get('/getListOfVerificationRequests/:agreementId', requestProcess.listOfVerificationReqProcessing, requestValidation, dataTransferReportController.getListOfVerificationRequests)
+    dataTransferReportRouter.get('/accountDataBlock/:exchangeId', dataTransferReportController.accountDataBlock)
 
     return dataTransferReportRouter
 }

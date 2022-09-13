@@ -3,15 +3,16 @@ import * as express from 'express'
 import * as session from 'express-session'
 import * as http from 'http'
 import * as morgan from 'morgan'
+import * as crypto from 'crypto'
 import batchRoutesPromise from './routes/batch.router'
 import agreementRoutesPromise from './routes/agreement.router'
 import dataTransferReportRouterPromise from './routes/dataTransferReport.router'
 import authRouterPromise from './routes/auth.routes'
-import * as crypto from 'crypto'
 import config from './config/config'
+import passportPromise from './middleware/passport'
 import { errorMiddleware } from './middleware/error'
 import { initializeDb } from './sqlite/initializeDatabase'
-import passportPromise from './middleware/passport'
+
 
 const main = async function (): Promise<void> {
 
@@ -28,10 +29,10 @@ const main = async function (): Promise<void> {
   app.use(express.urlencoded({ extended: false }))
   app.use(morgan('dev'))
   app.use(passport.initialize())
+  app.use('/', await authRouterPromise())
   app.use('/batch', await batchRoutesPromise())
   app.use('/agreement', await agreementRoutesPromise())
   app.use('/report', await dataTransferReportRouterPromise())
-  app.use('/oidc', await authRouterPromise())
   app.use(errorMiddleware)
 
   await initializeDb()

@@ -28,31 +28,7 @@ export async function createTables(db: Database<sqlite3.Database, sqlite3.Statem
 
 }
 
-// exports.findByUsernames = function(username, cb) {
-//     process.nextTick(async function() {
-
-//         const db = await openDb()
-//         const select = 'SELECT * FROM DataSpaceUsers WHERE User= ?'
-//         const params = [username]
-
-
-//         db.serialize(function(){
-//             db.all(sql, [username], (err, rows) => {
-//                 if (err) {
-//                  console.log(err)
-//                 }else if(rows.length > 0){
-//                     var record = rows[0]
-//                     return cb(null, record)
-//                 }else {
-//                     return cb(null, null);
-//                 }
-//             });
-//         })
-//         db.close()
-//     });
-//   }
-
-export async function findByUsername (username: string, cb) {
+export async function findByUsername (username: string, cb: (error: any, user?: any, password?: any) => void) {
 
     const db = await openDb()
 
@@ -71,6 +47,7 @@ export async function findByUsername (username: string, cb) {
         }
     })
 }
+
 //await db.run('INSERT INTO DataSpaceUsers(User, Password) VALUES (?, ?)', [env.dataSpaceUser, env.dataSpacePassword])
 //'SELECT * FROM DataSpaceUsers WHERE User=? AND Password=?', env.dataSpaceUser, env.dataSpacePassword
 

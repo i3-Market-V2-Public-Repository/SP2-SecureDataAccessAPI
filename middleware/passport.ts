@@ -1,12 +1,9 @@
-'use strict'
-//process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+import config from '../config/config'
 import * as passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import { Issuer, Strategy as OidcStrategy, TokenSet } from 'openid-client'
-import config from '../config/config'
 import { findByUsername } from '../sqlite/sqlite'
-
-let Strategy = require('passport-http').DigestStrategy;
+import { DigestStrategy } from 'passport-http';
 
 export default async (): Promise<typeof passport> => {
     const issuer = await Issuer.discover(config.oidc.providerUri)
@@ -36,7 +33,7 @@ export default async (): Promise<typeof passport> => {
             return done(null, token)
         }))
 
-    passport.use(new Strategy({ qop: 'auth' },
+    passport.use(new DigestStrategy({ qop: 'auth' },
         async function (username, cb) {
             await findByUsername(username, function (err, user) {
                 if (err) { return cb(err); }

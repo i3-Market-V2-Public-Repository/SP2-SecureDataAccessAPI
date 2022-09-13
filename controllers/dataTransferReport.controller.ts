@@ -41,3 +41,23 @@ export async function getListOfVerificationRequests(req: Request, res: Response,
         next(error)
     }
 }
+
+export async function accountDataBlock(req: Request, res: Response, next: NextFunction) {
+
+    try {
+        
+        const exchangeId = req.params.exchangeId
+
+        const db = await openDb()
+
+        const select = 'SELECT * FROM Accounting WHERE ExchangeId=?'
+        const params = [exchangeId]
+
+        const selectResult = await db.get(select, params)
+
+        res.send(selectResult)
+        
+    } catch (error) {
+        next(error)
+    }
+}

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library'
-import * as sql from '../sqlite/sqlite'
+import { openDb } from '../sqlite/sqlite'
 import { retrieveRawPaymentTransaction, retrievePrice } from '../common/common'
 import { PaymentBody } from '../types/openapi'
 
@@ -27,11 +27,11 @@ export async function getDaaPublicKey(req: Request, res: Response, next: NextFun
     try {
         const dataExchangeAgreement: DataExchangeAgreement = req.body
         const consumerPublicKey = dataExchangeAgreement.orig
-        
+
         dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
         dataExchangeAgreement.dest = JSON.stringify(publicJwk)
 
-        const db = await sql.openDb()
+        const db = await openDb()
 
         const insert = 'INSERT INTO DataExchangeAgreements(ConsumerPublicKey, ProviderPublicKey, ProviderPrivateKey, DataExchangeAgreement) VALUES (?, ?, ?, ?)'
         const select = 'SELECT * FROM DataExchangeAgreements WHERE DataExchangeAgreement=?'
@@ -67,6 +67,28 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         const rawPaymentTransaction = await retrieveRawPaymentTransaction(payment)
 
         res.send(rawPaymentTransaction)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export async function getAgreementId(req: Request, res: Response, next: NextFunction) {
+
+    try {
+        const exchangeId = req.params.exchangeId
+
+        const db = await openDb()
+
+        const select = 'SELECT AgreementId FROM Accounting WHERE ExchangeId=?'
+        const params = [exchangeId]
+
+        const selectResult = await db.get(select, params)
+
+        if (selectResult != undefined){
+            res.send(selectResult)
+        }else {
+            res.send({msg: `No agreement found for exchangeId ${exchangeId}`})
+        }
     } catch (error) {
         next(error)
     }

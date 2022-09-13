@@ -11,6 +11,7 @@ export default async (): Promise<typeof agreementRouter> => {
 
     agreementRouter.post('/getProviderPublicKey', requestProcess.dataExchangeAgreementReqProcessing, requestValidation, agreementController.getDaaPublicKey)
     agreementRouter.post('/payMarketFee/:offeringId', requestProcess.feeReqProcessing, requestValidation, agreementController.payMarketFee)
-    
+    agreementRouter.get('/getAgreementId/:exchangeId', agreementController.getAgreementId)
+
     return agreementRouter
 }

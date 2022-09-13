@@ -19,17 +19,22 @@ export default async (): Promise<typeof authRouter> => {
     const passport = await passportPromise()
     authRouter.use(cors)
   
-    authRouter.get('/login/provider',
+    authRouter.get('/oidc/login/provider',
       passport.authenticate('oidc', { scope: 'openid vc vce:provider' })
     )
   
-    authRouter.get('/login/consumer',
+    authRouter.get('/oidc/login/consumer',
       passport.authenticate('oidc', { scope: 'openid vc vce:consumer' })
     )
   
-    authRouter.get('/cb', 
+    authRouter.get('/oidc/cb', 
     passport.authenticate('oidc', { session: false }), authController.oidcCb
     )
     
+    authRouter.get('/digestAuthTest',
+    passport.authenticate('digest', { session: false }), function(req, res) {
+        res.send({msg: 'Digest auth'})
+    })
+
     return authRouter
 }
