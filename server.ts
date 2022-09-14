@@ -7,7 +7,8 @@ import * as crypto from 'crypto'
 import batchRoutesPromise from './routes/batch.router'
 import agreementRoutesPromise from './routes/agreement.router'
 import dataTransferReportRouterPromise from './routes/dataTransferReport.router'
-import authRouterPromise from './routes/auth.routes'
+import oidcAuthRouterPromise from './routes/oidcAuth.router'
+import streamAuthRouterPromise from './routes/streamAuth.router'
 import config from './config/config'
 import passportPromise from './middleware/passport'
 import { errorMiddleware } from './middleware/error'
@@ -29,8 +30,9 @@ const main = async function (): Promise<void> {
   app.use(express.urlencoded({ extended: false }))
   app.use(morgan('dev'))
   app.use(passport.initialize())
-  app.use('/', await authRouterPromise())
+  app.use('/oidc', await oidcAuthRouterPromise())
   app.use('/batch', await batchRoutesPromise())
+  app.use('/stream/auth', await streamAuthRouterPromise())
   app.use('/agreement', await agreementRoutesPromise())
   app.use('/report', await dataTransferReportRouterPromise())
   app.use(errorMiddleware)

@@ -8,15 +8,15 @@ import { JwtClaims } from '../types/openapi';
 import config from '../config/config'
 import * as jwt from 'jsonwebtoken'
 
-export async function retrieveRawPaymentTransaction (payment: PaymentBody) {
+export async function retrieveRawPaymentTransaction(payment: PaymentBody) {
 
     const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/payment`, {
-          method: 'POST',
-          headers: {
+        method: 'POST',
+        headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payment)
+        },
+        body: JSON.stringify(payment)
     });
 
     const rawTransaction = await request.json();
@@ -25,13 +25,13 @@ export async function retrieveRawPaymentTransaction (payment: PaymentBody) {
     return rawTransaction
 }
 
-export async function retrievePrice (offeringId: string) {
+export async function retrievePrice(offeringId: string) {
 
     const request = await fetch(`${env.backplaneUrl}/semantic-engine/api/registration/offering/${offeringId}/offeringId`, {
-          method: 'GET',
-          headers: {
-              'Accept': '*/*'
-          },
+        method: 'GET',
+        headers: {
+            'Accept': '*/*'
+        },
     });
     const offering = await request.json();
     const price = offering.hasPricingModel.basicPrice
@@ -39,15 +39,15 @@ export async function retrievePrice (offeringId: string) {
     return price
 }
 
-export async function fetchSignedResolution (verificationRequest: string) {
+export async function fetchSignedResolution(verificationRequest: string) {
 
     const verification = await fetch(`${env.backplaneUrl}/conflictResolverService/verification`, {
-          method: 'POST',
-          headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({"verificationRequest": verificationRequest}),
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "verificationRequest": verificationRequest }),
     });
 
     const resolution = await verification.json();
@@ -56,13 +56,13 @@ export async function fetchSignedResolution (verificationRequest: string) {
     return signedResolution
 }
 
-export async function getAgreement (agreementId: number) {
+export async function getAgreement(agreementId: number) {
 
     const request = await fetch(`${env.smartContractManager}/get_agreement/${agreementId}`, {
-          method: 'GET',
-          headers: {
-              'Accept': '*/*'
-          },
+        method: 'GET',
+        headers: {
+            'Accept': '*/*'
+        },
     });
     const agreement = await request.json();
 
@@ -72,7 +72,7 @@ export async function getAgreement (agreementId: number) {
 export function getTimestamp() {
 
     const currentDate = new Date();
-    const dateFormat = `${currentDate.getFullYear()}` +  '-' + ("0" + (currentDate.getMonth() + 1)).slice(-2) + '-' + ("0" + currentDate.getDate()).slice(-2) 
+    const dateFormat = `${currentDate.getFullYear()}` + '-' + ("0" + (currentDate.getMonth() + 1)).slice(-2) + '-' + ("0" + currentDate.getDate()).slice(-2)
 
     return dateFormat;
 }
@@ -85,102 +85,102 @@ export function getFilesizeInBytes(filename: string) {
     return fileSizeInBytes;
 }
 
-export function checkFile(resourceMapPath: string, resourcePath: string){
-    try{
+export function checkFile(resourceMapPath: string, resourcePath: string) {
+    try {
         fs.accessSync(resourceMapPath, fs.constants.F_OK);
         console.log('Map already exists');
-    }catch (error){
+    } catch (error) {
         const data = '{"records":[]}'
         const create = fs.appendFileSync(resourceMapPath, data);
         mapData(resourceMapPath, resourcePath);
     }
 }
 
-export function mapData(resourceMapPath: string, resourcePath: string){
+export function mapData(resourceMapPath: string, resourcePath: string) {
 
     const blockSize = env.blockSize
     const fd = fs.openSync(resourcePath, 'r')
     const fileSize = getFilesizeInBytes(resourcePath);
-    const numberOfBlocks = Math.ceil(fileSize/blockSize);
+    const numberOfBlocks = Math.ceil(fileSize / blockSize);
 
     console.log(`Number of blocks: ${numberOfBlocks}`);
-  
+
     const data = fs.readFileSync(resourceMapPath, 'binary');
     let map = JSON.parse(data);
 
     let hash = '';
     let index = 0;
 
-    while(index < (numberOfBlocks*blockSize)){
+    while (index < (numberOfBlocks * blockSize)) {
 
         const buffer = Buffer.alloc(blockSize);
         fs.readSync(fd, buffer, 0, blockSize, index)
 
         const content = buffer
-        hash = crypto.createHash('sha256').update(content+hash).digest('hex');
+        hash = crypto.createHash('sha256').update(content + hash).digest('hex');
 
         console.log(`Hash of the block is ${hash}`);
-                
-        map.records.push({[`${hash}`]:`${index}`});
+
+        map.records.push({ [`${hash}`]: `${index}` });
         index += blockSize;
     }
     let jsonMap = JSON.stringify(map);
     fs.writeFileSync(resourceMapPath, jsonMap);
 
     console.log('Map created');
-  }
+}
 
-  export async function responseData(blockId: string, jsonMapOfData: JsonMapOfData, resourcePath: string){
+export async function responseData(blockId: string, jsonMapOfData: JsonMapOfData, resourcePath: string) {
 
     let blockSize = env.blockSize
 
     // get index of blockId
     const keys: string[] = []
-    for(let i = 0; i < jsonMapOfData.records.length; i++){
+    for (let i = 0; i < jsonMapOfData.records.length; i++) {
         keys[i] = Object.keys(jsonMapOfData.records[i])[0]
     }
 
     const getIndex = keys.indexOf(blockId);
 
     // check if you got to last block
-    if (getIndex + 1 === keys.length){
+    if (getIndex + 1 === keys.length) {
         blockSize = getFilesizeInBytes(resourcePath) % blockSize;
         console.log(`The size of last block is: ${blockSize}`)
     }
 
     // data from coresponding offset
     const buffer = Buffer.alloc(blockSize);
-    
-    const promise = await new Promise<ResponseData> ((resolve) => {
 
-        fs.open(resourcePath, 'r+', function (err, fd) { 
-        if (err) { 
-            return console.error(err); 
-        } 
-      
-        console.log("Reading the file"); 
-      
-        fs.read(fd, buffer, 0, blockSize, 
-            parseInt(jsonMapOfData.records[getIndex][`${blockId}`]), function (err, num) { 
-                if (err) { 
-                    console.log(err); 
-                } 
-                console.log('Buffer data: ' + buffer.length)
+    const promise = await new Promise<ResponseData>((resolve) => {
 
-                if (getIndex + 1 == keys.length){
-                resolve({data: buffer, nextBlockId: "null"});
-                }else{
-                resolve({data: buffer, nextBlockId: keys[getIndex+1]})
-                }
-            });
+        fs.open(resourcePath, 'r+', function (err, fd) {
+            if (err) {
+                return console.error(err);
+            }
+
+            console.log("Reading the file");
+
+            fs.read(fd, buffer, 0, blockSize,
+                parseInt(jsonMapOfData.records[getIndex][`${blockId}`]), function (err, num) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    console.log('Buffer data: ' + buffer.length)
+
+                    if (getIndex + 1 == keys.length) {
+                        resolve({ data: buffer, nextBlockId: "null" });
+                    } else {
+                        resolve({ data: buffer, nextBlockId: keys[getIndex + 1] })
+                    }
+                });
             // Close the opened file. 
-            fs.close(fd, function (err) { 
-                if (err) { 
-                    console.log(err); 
-                } 
-                console.log("File closed successfully"); 
+            fs.close(fd, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log("File closed successfully");
             });
-    }); 
+        });
     });
     return promise;
 }
@@ -188,12 +188,12 @@ export function mapData(resourceMapPath: string, resourcePath: string){
 export async function deployRawPaymentTransaction(signature: string) {
 
     const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/deploy-signed-transaction`, {
-          method: 'POST',
-          headers: {
+        method: 'POST',
+        headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({serializedTx:signature})
+        },
+        body: JSON.stringify({ serializedTx: signature })
     });
     const transactionObject: TransactionObject = await request.json();
     console.log(transactionObject)
@@ -201,13 +201,13 @@ export async function deployRawPaymentTransaction(signature: string) {
     return transactionObject
 }
 
-export function _createJwt (claims: JwtClaims): string {
+export function _createJwt(claims: JwtClaims): string {
     /** This is what ends up in our JWT */
     const jwtClaims = {
-      iss: config.jwt.iss,
-      aud: config.jwt.aud,
-      exp: Math.floor(Date.now() / 1000) + 86400, // 1 day (24×60×60=86400s) from now
-      ...claims
+        iss: config.jwt.iss,
+        aud: config.jwt.aud,
+        exp: Math.floor(Date.now() / 1000) + 86400, // 1 day (24×60×60=86400s) from now
+        ...claims
     }
     return jwt.sign(jwtClaims, config.jwt.secret)
 }

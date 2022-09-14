@@ -1,6 +1,4 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import { Request } from "express"
-import { TokenSet } from 'openid-client';
 
 export interface ApiError {
     name: string;
@@ -138,4 +136,29 @@ export interface JwtClaims {
 
 export interface PopRequest {
     por: string;
+}
+
+export interface RegdsRequest {
+    uid: string;
+    description: string;
+    url: string;
+    action: string;
+}
+
+export interface MqttOptions {
+    clientId: string;
+    username: string;
+    password: string;
+    clean: boolean;
+}
+
+export interface MqttParams {
+    messageSplit: string[];
+    topicSplit: string[];
+    consumerDid: string;
+    dataSourceUid: string;
+    timestamp: string;
+    topicSubscribedTo: string;
+    topicUnsubscribedTo: string;
+    ammountOfDataReceived: number;
 }

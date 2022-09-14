@@ -1,9 +1,8 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import { Session } from 'express-session';
 import { SessionSchema } from '../types/openapi'
 
 class NpSession {
-    //users = <SessionSchema>{}
+
     users: Record<string, SessionSchema> = {}
 
     set(userId: string, agreementId: number, npProvider:nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig) {

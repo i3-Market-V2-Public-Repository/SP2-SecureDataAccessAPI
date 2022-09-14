@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, VerificationRequest } from '../types/openapi';
+import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, RegdsRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -113,6 +113,26 @@ export function popReqProcessing(req: Request, res: Response, next: NextFunction
   };
 
   res.locals.reqParams = { input, rules }
+
+  next()
+}
+
+export function regdsReqProcessing(req: Request, res: Response, next: NextFunction) {
+
+  const input: RegdsRequest = req.body
+
+  const rules = {
+    'uid': 'required|string',
+    'description': 'required|string',
+    'url': 'required|string',
+    'action': 'required|in:register,unregister'
+  };
+
+  const msg = {
+    'action.in': 'Must be register or unregister'
+  }
+
+  res.locals.reqParams = { input, rules, msg }
 
   next()
 }

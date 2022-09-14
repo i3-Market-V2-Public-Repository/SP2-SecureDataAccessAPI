@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@i3m/non-repudiation-library": "^1.0.4",
+    "@types/mqtt": "^2.5.0",
     "dotenv": "^16.0.1",
     "digest-fetch": "^1.2.1",
     "express": "^4.18.1",

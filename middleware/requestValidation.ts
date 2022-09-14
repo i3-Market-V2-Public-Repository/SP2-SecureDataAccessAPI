@@ -3,7 +3,7 @@ import niv = require('node-input-validator');
 
 export function requestValidation(req: Request, res: Response, next: NextFunction) {
 
-  niv.addCustomMessages(res.locals.msg);
+  niv.addCustomMessages(res.locals.reqParams.msg);
 
   const validator = new niv.Validator(
       res.locals.reqParams.input,
