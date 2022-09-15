@@ -160,5 +160,13 @@ export interface MqttParams {
     timestamp: string;
     topicSubscribedTo: string;
     topicUnsubscribedTo: string;
+    agreementId: string;
     ammountOfDataReceived: number;
+}
+
+export interface DataSourcesRow {
+    Uid: string;
+    Description: string;
+    Url: string;
+    Timestamp: string;
 }

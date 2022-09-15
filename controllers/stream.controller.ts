@@ -1,6 +1,8 @@
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { Request, NextFunction, Response } from 'express';
 import { getTimestamp } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
+import mqttinit from '../mqtt/mqttInit';
 
 export async function registerDataSource(req: Request, res: Response, next: NextFunction) {
 
@@ -51,12 +53,13 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
         const data = req.body
         const uid = req.params.uid
     
-        const db = sqliteFunctions.connectToDatabase('./db/data_access_server.db3')
-        const client = client_subscription.mqttinit()
+        const db = await openDb()
+        const client = mqttinit.get()
     
-        let rawBufferData = Buffer.from(data)
-        let data_sent = rawBufferData.length
-        npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, privateJwk, data, providerDltSigningKeyHex)
+        const rawBufferData = Buffer.from(data)
+        const dataSent = rawBufferData.length
+        
+        const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, privateJwk, data, providerDltSigningKeyHex)
         const poo = await npProvider.generatePoO()
         
         const response_data = {block_id: block_id, cipherblock: npProvider.block.jwe, poO: poo}
@@ -76,7 +79,6 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
           });
         })
         res.status(200).send({ msg: 'Data sent to broker' })
-    
       } catch (error) {
             next(error)
       }

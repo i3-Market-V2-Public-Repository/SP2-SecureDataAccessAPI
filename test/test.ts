@@ -3,7 +3,7 @@ import 'isomorphic-fetch'
 import * as fs from 'fs'
 import { JsonMapOfData, ResponseData } from "../types/openapi";
 import { getFilesizeInBytes } from "../common/common";
-import { openDb,  } from "../sqlite/sqlite";
+import { openDb  } from "../sqlite/sqlite";
 
 
 const DigestFetch = require('digest-fetch');
@@ -116,8 +116,8 @@ const oneBlock = async() => {
 export async function testDb() {
     
 
-    const select = 'SELECT * FROM DataSpaceUsers WHERE User=?'
-    const params = ["sd"]
+    const select = 'SELECT User FROM DataSpaceUsers WHERE User=?'
+    const params = ["admin"]
 
     const db = await openDb()
     const selectResult = await db.get(select, params)
@@ -127,7 +127,7 @@ export async function testDb() {
     await db.close()
 }
 
-//testDb()
+testDb()
 
 async function testDigest() {
     const client = new DigestFetch('jill', 'birthday') 
@@ -137,4 +137,4 @@ async function testDigest() {
     console.log(resource)
 }
 
-testDigest()
+//testDigest()
