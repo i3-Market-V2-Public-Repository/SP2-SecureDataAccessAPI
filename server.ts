@@ -11,6 +11,7 @@ import oidcAuthRouterPromise from './routes/oidcAuth.router'
 import streamAuthRouterPromise from './routes/streamAuth.router'
 import config from './config/config'
 import passportPromise from './middleware/passport'
+import mqttinit from './mqtt/mqttInit'
 import { errorMiddleware } from './middleware/error'
 import { initializeDb } from './sqlite/initializeDatabase'
 
@@ -38,7 +39,8 @@ const main = async function (): Promise<void> {
   app.use(errorMiddleware)
 
   await initializeDb()
-
+  mqttinit.mqttInit()
+  
   const server = http.createServer(app);
   const { addr, port } = config.server;
   server.listen(port, addr)
