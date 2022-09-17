@@ -3,12 +3,24 @@ import * as crypto from 'crypto'
 import { MqttParams, DataSourcesRow } from '../types/openapi'
 import { openDb } from '../sqlite/sqlite';
 import { env } from '../config/env';
+import npsession from '../session/np.session';
+import { getTimestamp } from '../common/common';
+
 const DigestFetch = require('digest-fetch');
-export async function mqttprocess(mqttClient: mqtt.MqttClient) {
 
-    let params: MqttParams
+export async function mqttProcess(mqttClient: mqtt.MqttClient) {
 
-    params.ammountOfDataReceived = 0
+    let params: MqttParams = {
+        messageSplit: [],
+        topicSplit: [],
+        consumerDid: '',
+        dataSourceUid: '',
+        timestamp: '',
+        topicSubscribedTo: '',
+        topicUnsubscribedTo: '',
+        agreementId: '',
+        ammountOfDataReceived: 0
+    }
 
     mqttClient.on('connect', function () {
         console.log("Connected to mqtt broker...\n")
@@ -84,11 +96,40 @@ export async function mqttprocess(mqttClient: mqtt.MqttClient) {
             endStream(params.dataSourceUid)
         }
         if (topic.startsWith('/from/')) {
-            let npProvider = nrp.getNpProvider()
-            let por = JSON.parse(message.toString())
-            const poP = await common.validateProofOfReception(por, npProvider)
-            //common.NRPcompletenessCheck(npProvider)
-            mqttClient.publish('/to/' + `${params.consumerDid}` + `/${params.dataSourceUid}`, JSON.stringify(poP))
+
+            const mode = 'stream'
+
+            const session = npsession.get(params.consumerDid)
+            const npProvider = session.stream.npProvider
+
+            const por = JSON.parse(message.toString())
+
+            await npProvider.verifyPoR(por)
+            const pop = await npProvider.generatePoP()
+            const poo = npProvider.block.poo
+    
+            const verificationRequest = await npProvider.generateVerificationRequest()
+    
+            const consumerId = params.consumerDid
+            const agreementId = session.batch.agreementId
+            const timestamp = getTimestamp()
+            const exchangeId = poo?.payload.exchange.id
+    
+            const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            const select = 'SELECT * FROM Accounting WHERE Pop=?'
+            const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest]
+            const selectParams = [pop.jws]
+    
+            const db = await openDb()
+            const selectResult = await db.all(select, selectParams)
+    
+            if (selectResult.length === 0) {
+                await db.run(insert, insertParams)
+            }
+    
+            npsession.set(consumerId, agreementId, npProvider, mode)
+
+            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop.jws))
         }
 
     })
@@ -133,7 +174,7 @@ async function endStream(dataSourceUid: string) {
         const select = 'SELECT FROM DataSources WHERE Uid=?'
         const selectParams = [dataSourceUid]
 
-        const selectResult: DataSourcesRow = await db.get(select, selectParams)
+        const selectResult: DataSourcesRow | undefined = await db.get(select, selectParams)
 
         if (selectResult !== undefined) {
 
@@ -147,4 +188,4 @@ async function endStream(dataSourceUid: string) {
     await db.close()
 }
 
-export default { mqttprocess }
+export default { mqttProcess }

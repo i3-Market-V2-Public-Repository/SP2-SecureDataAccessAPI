@@ -2,17 +2,17 @@ import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import * as fs from 'fs'
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
-import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData } from '../types/openapi';
+import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData, Mode } from '../types/openapi';
 import { getAgreement, getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
 import { openDb } from '../sqlite/sqlite'
 import { HttpError } from 'express-openapi-validator/dist/framework/types'
-import { SessionSchema } from '../types/openapi'
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import npsession from '../session/np.session';
 
 async function poo(req: Request, res: Response, next: NextFunction) {
     try {
 
+        const mode = 'batch'
         // Let us define the RPC endopint to the ledger (just in case we don't want to use the default one)
         const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
             rpcProviderUrl: env.rpcProviderUrl
@@ -93,7 +93,7 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
                 const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
 
-                npsession.set(decoded.sub!, batchReqParams.agreementId, npProvider)
+                npsession.set(decoded.sub!, batchReqParams.agreementId, npProvider, mode)
 
                 res.send(batchDaaResponse)
 
@@ -120,23 +120,24 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
 async function pop(req: Request, res: Response, next: NextFunction) {
     try {
+        const mode = 'batch'
 
         const por = req.body.por
 
         const bearerToken = req.header('authorization')?.replace("Bearer ", "")
         const decoded = jwtDecode<JwtPayload>(bearerToken!)
 
-        const session: SessionSchema = npsession.get(decoded.sub!)
+        const session: Mode = npsession.get(decoded.sub!)
 
-        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.npProvider
+        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch.npProvider
         await npProvider.verifyPoR(por)
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
 
         const verificationRequest = await npProvider.generateVerificationRequest()
 
-        const consumerId = session.consumerId
-        const agreementId = session.agreementId
+        const consumerId = decoded.sub!
+        const agreementId = session.batch.agreementId
         const timestamp = getTimestamp()
         const exchangeId = poo?.payload.exchange.id
 
@@ -152,7 +153,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
             await db.run(insert, insertParams)
         }
 
-        npsession.set(consumerId, agreementId, npProvider)
+        npsession.set(consumerId, agreementId, npProvider, mode)
 
         res.send(pop)
     } catch (error) {

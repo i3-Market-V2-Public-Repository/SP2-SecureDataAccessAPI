@@ -3,7 +3,7 @@ import { MqttOptions } from '../types/openapi'
 
 class MqttInit {
 
-    _mqttClient: mqtt.MqttClient
+    
 
     options: MqttOptions = {
         clientId: "data-access-api",
@@ -12,13 +12,15 @@ class MqttInit {
         clean: false
     };
 
-    mqttInit() {
-        console.log("Data-access connecting to broker...\n")
-        this._mqttClient = mqtt.connect('mqtt://mqtt-broker:1883', this.options)
-    }
+    // set() {
+    //     console.log("Data-access connecting to broker...\n")
+    //     this.mqttClient = mqtt.connect('mqtt://mqtt-broker:1883', this.options)
+    // }
+    
+    mqttClient: mqtt.MqttClient = mqtt.connect('mqtt://mqtt-broker:1883', this.options)
 
     get() {
-        return this._mqttClient
+        return this.mqttClient
     }
 }
 

@@ -66,9 +66,12 @@ export interface ViolationClass {
     issuerId: string;
 }
 
+export interface Mode {
+    batch: SessionSchema;
+    stream: SessionSchema;
+}
 export interface SessionSchema {
     npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig,
-    consumerId: string,
     agreementId: number
 }
 
@@ -169,4 +172,18 @@ export interface DataSourcesRow {
     Description: string;
     Url: string;
     Timestamp: string;
+}
+
+export interface StreamSubscribersRow {
+    ConsumerDid: string;
+    DataSourceUid: string;
+    AgreementId: string;
+    Timestamp: string;
+    SubId: string
+    AmmountOfDataReceived: string;
+}
+
+export interface StreamResponse {
+    poo: string;
+    cipherBlock: string;
 }

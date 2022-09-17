@@ -1,8 +1,11 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { Request, NextFunction, Response } from 'express';
-import { getTimestamp } from '../common/common';
+import { getAgreement, getTimestamp } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
 import mqttinit from '../mqtt/mqttInit';
+import { Agreement, StreamResponse, StreamSubscribersRow } from '../types/openapi';
+import { env } from '../config/env';
+import npsession from '../session/np.session';
 
 export async function registerDataSource(req: Request, res: Response, next: NextFunction) {
 
@@ -50,35 +53,54 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
 export async function newData(req: Request, res: Response, next: NextFunction) {
     try {
+        const mode = 'stream'
+
         const data = req.body
         const uid = req.params.uid
-    
-        const db = await openDb()
+        
         const client = mqttinit.get()
     
         const rawBufferData = Buffer.from(data)
         const dataSent = rawBufferData.length
-        
-        const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, privateJwk, data, providerDltSigningKeyHex)
-        const poo = await npProvider.generatePoO()
-        
-        const response_data = {block_id: block_id, cipherblock: npProvider.block.jwe, poO: poo}
-        block_id = block_id + 1
-        let sql = 'SELECT * FROM consumer_subscribers WHERE DataSourceUid=?'
-        db.serialize(function(){
-          db.all(sql, [uid], (err, rows) => {
-              if (err) {
-               console.log(err);
-              }       
-              rows.forEach(function(item){
-                  client.publish('/to/'+item.ConsumerDid+'/'+item.DataSourceUid, JSON.stringify(response_data))
-                const ammount_of_data_received = Number(item.AmmountOfDataReceived) + data_sent
-                const sub_id = item.SubId
-                sqliteFunctions.saveAmmountOfDataSent(ammount_of_data_received, sub_id, db)
-              })
-          });
+
+        const db = await openDb()
+
+        const select = 'SELECT FROM StreamSubscribers WHERE DataSourceUid=?'
+        const selectParams = [uid]
+
+        const selectResult = await db.all(select, selectParams)
+
+        selectResult.forEach(async(row: StreamSubscribersRow) => {
+
+            const agreement: Agreement = await getAgreement(Number(row.AgreementId))
+
+            const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
+            const selectParams = [agreement.consumerPublicKey, agreement.providerPublicKey]
+            
+            const selectResult = await db.get(select, selectParams)
+            
+            const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
+            const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
+
+            const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, env.providerDltSigningKeyHex)
+            const poo = await npProvider.generatePoO()
+
+            const streamDaaResponse: StreamResponse = { poo: poo.jws, cipherBlock: npProvider.block.jwe }
+
+            client.publish(`/to/${row.ConsumerDid}/${row.DataSourceUid}/${row.AgreementId}`, JSON.stringify(streamDaaResponse))
+            //save npProvider here
+
+            const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
+
+            const update = 'UPDATE StreamSubscribers SET AmmountOfDataReceived=? WHERE SubId=?'
+            const updateParams = [ ammountOfDataReceived, row.SubId]
+
+            await db.run(update, updateParams)
+
+            npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, mode)
         })
-        res.status(200).send({ msg: 'Data sent to broker' })
+
+        res.send({ msg: 'Data sent to broker' })
       } catch (error) {
             next(error)
       }

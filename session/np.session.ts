@@ -1,23 +1,30 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import { SessionSchema } from '../types/openapi'
+import { Mode } from '../types/openapi'
 
 class NpSession {
 
-    users: Record<string, SessionSchema> = {}
+    users: Record<string, Mode> = {}
 
-    set(userId: string, agreementId: number, npProvider:nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig) {
-        this.users[userId] = { 
-            npProvider: npProvider,
-            consumerId: userId,
-            agreementId: agreementId
-        };
-    }
- 
-    get(userId: string) {
-        return this.users[userId];
-    }
- }
- 
- let npsession = new NpSession();
+    set(consumerId: string, agreementId: number, npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig, mode: string) {
 
- export default  npsession
+        if (mode === 'batch') {
+            this.users[consumerId].batch = {
+                npProvider: npProvider,
+                agreementId: agreementId
+            };
+        } else if (mode === 'stream') {
+            this.users[consumerId].stream = {
+                npProvider: npProvider,
+                agreementId: agreementId
+            };
+        }
+    }
+
+    get(consumerId: string) {
+        return this.users[consumerId];
+    }
+}
+
+let npsession = new NpSession();
+
+export default npsession
