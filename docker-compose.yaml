@@ -7,8 +7,8 @@ services:
       args: 
         USER_ID: ${USER_ID-1000}
         GROUP_ID: ${GROUP_ID-1000}
-    image: ${APP_NAME:-app}
-    #image: registry.gitlab.com/i3-market/code/sp2/express-datatransfermanagement:2.1.0
+    #image: ${APP_NAME}
+    image: secure-data-access-api
     container_name: data-access-api
     networks:
       - dataaccessserver_i3m
@@ -19,7 +19,6 @@ services:
     #   - ./app:/app
     ports:
       - ${ADDRESS:-0.0.0.0}:${PORT:-3000}:${PORT:-3000}
-      - 127.0.0.1:${DEBUG_PORT:-9229}:9229
     depends_on:
       - mqtt-broker
     command:

@@ -67,8 +67,8 @@ export interface ViolationClass {
 }
 
 export interface Mode {
-    batch: SessionSchema;
-    stream: SessionSchema;
+    batch?: SessionSchema;
+    stream?: SessionSchema;
 }
 export interface SessionSchema {
     npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig,

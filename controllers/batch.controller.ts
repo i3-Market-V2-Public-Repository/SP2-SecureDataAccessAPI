@@ -129,7 +129,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         const session: Mode = npsession.get(decoded.sub!)
 
-        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch.npProvider
+        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider
         await npProvider.verifyPoR(por)
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
@@ -137,7 +137,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
         const verificationRequest = await npProvider.generateVerificationRequest()
 
         const consumerId = decoded.sub!
-        const agreementId = session.batch.agreementId
+        const agreementId = session.batch!.agreementId
         const timestamp = getTimestamp()
         const exchangeId = poo?.payload.exchange.id
 

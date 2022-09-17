@@ -8,14 +8,18 @@ class NpSession {
     set(consumerId: string, agreementId: number, npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig, mode: string) {
 
         if (mode === 'batch') {
-            this.users[consumerId].batch = {
+            this.users[consumerId] = {
+                batch: {
                 npProvider: npProvider,
                 agreementId: agreementId
+                }
             };
         } else if (mode === 'stream') {
-            this.users[consumerId].stream = {
+            this.users[consumerId] = {
+                stream: {
                 npProvider: npProvider,
                 agreementId: agreementId
+                }
             };
         }
     }
@@ -26,5 +30,5 @@ class NpSession {
 }
 
 let npsession = new NpSession();
-
+npsession
 export default npsession

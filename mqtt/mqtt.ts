@@ -100,7 +100,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const mode = 'stream'
 
             const session = npsession.get(params.consumerDid)
-            const npProvider = session.stream.npProvider
+            const npProvider = session.stream!.npProvider
 
             const por = JSON.parse(message.toString())
 
@@ -111,7 +111,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const verificationRequest = await npProvider.generateVerificationRequest()
     
             const consumerId = params.consumerDid
-            const agreementId = session.batch.agreementId
+            const agreementId = session.batch!.agreementId
             const timestamp = getTimestamp()
             const exchangeId = poo?.payload.exchange.id
     
@@ -129,7 +129,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
     
             npsession.set(consumerId, agreementId, npProvider, mode)
 
-            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop.jws))
+            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop))
         }
 
     })
