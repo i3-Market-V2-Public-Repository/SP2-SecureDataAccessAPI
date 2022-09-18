@@ -64,7 +64,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const insert = 'INSERT INTO StreamSubscribers(ConsumerDid, DataSourceUid, AgreementId, Timestamp, SubId, AmmountOfDataReceived) VALUES (?, ?, ?, ?, ?, ?)'
             const select = 'SELECT * FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
 
-            const insertParams = [params.consumerDid, params.dataSourceUid, params.timestamp.replace(':', ''), subId, params.ammountOfDataReceived]
+            const insertParams = [params.consumerDid, params.dataSourceUid, params.agreementId, params.timestamp.replace(':', ''), subId, params.ammountOfDataReceived]
             const selectParams = [params.consumerDid, params.dataSourceUid]
 
             const selectResult = await db.get(select, selectParams)
@@ -111,7 +111,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const verificationRequest = await npProvider.generateVerificationRequest()
     
             const consumerId = params.consumerDid
-            const agreementId = session.batch!.agreementId
+            const agreementId = session.stream!.agreementId
             const timestamp = getTimestamp()
             const exchangeId = poo?.payload.exchange.id
     

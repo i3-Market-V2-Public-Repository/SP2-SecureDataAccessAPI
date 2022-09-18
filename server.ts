@@ -9,6 +9,7 @@ import agreementRoutesPromise from './routes/agreement.router'
 import dataTransferReportRouterPromise from './routes/dataTransferReport.router'
 import oidcAuthRouterPromise from './routes/oidcAuth.router'
 import streamAuthRouterPromise from './routes/streamAuth.router'
+import streamRouterPromise from './routes/stream.router'
 import config from './config/config'
 import passportPromise from './middleware/passport'
 import mqttinit from './mqtt/mqttInit'
@@ -32,6 +33,7 @@ const main = async function (): Promise<void> {
   app.use(express.urlencoded({ extended: false }))
   app.use(morgan('dev'))
   app.use(passport.initialize())
+  app.use('/', await streamRouterPromise())
   app.use('/oidc', await oidcAuthRouterPromise())
   app.use('/batch', await batchRoutesPromise())
   app.use('/stream/auth', await streamAuthRouterPromise())
@@ -41,7 +43,8 @@ const main = async function (): Promise<void> {
 
   await initializeDb()
 
-  const mqttClient = mqttinit.get()
+  mqttinit.set('client')
+  const mqttClient = mqttinit.get('client')
   await mqttProcess(mqttClient)
   
   const server = http.createServer(app);

@@ -19,7 +19,7 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
         const db = await openDb()
 
-        const insert = 'INSERT INTO DataSources(Uid, Description, Url, Timestamp) VALUES (?, ?)'
+        const insert = 'INSERT INTO DataSources(Uid, Description, Url, Timestamp) VALUES (?, ?, ?, ?)'
         const select = 'SELECT * FROM DataSources WHERE Uid=?'
         const unregister = 'DELETE FROM DataSources WHERE Uid=?'
 
@@ -31,7 +31,7 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
             const selectResult = await db.get(select, selectParams)
 
-            if (selectResult !== undefined) {
+            if (selectResult === undefined) {
                 await db.run(insert, insertParams)
                 await db.close()
 
@@ -58,17 +58,19 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
         const data = req.body
         const uid = req.params.uid
         
-        const client = mqttinit.get()
+        const client = mqttinit.get('client')
     
         const rawBufferData = Buffer.from(data)
         const dataSent = rawBufferData.length
 
         const db = await openDb()
 
-        const select = 'SELECT FROM StreamSubscribers WHERE DataSourceUid=?'
+        const select = 'SELECT * FROM StreamSubscribers WHERE DataSourceUid=?'
         const selectParams = [uid]
 
         const selectResult = await db.all(select, selectParams)
+
+        console.log(selectResult) //to delete
 
         selectResult.forEach(async(row: StreamSubscribersRow) => {
 
@@ -88,7 +90,8 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
             const streamDaaResponse: StreamResponse = { poo: poo.jws, cipherBlock: npProvider.block.jwe }
 
             client.publish(`/to/${row.ConsumerDid}/${row.DataSourceUid}/${row.AgreementId}`, JSON.stringify(streamDaaResponse))
-            //save npProvider here
+
+            npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, mode)
 
             const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
 
@@ -96,8 +99,6 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
             const updateParams = [ ammountOfDataReceived, row.SubId]
 
             await db.run(update, updateParams)
-
-            npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, mode)
         })
 
         res.send({ msg: 'Data sent to broker' })

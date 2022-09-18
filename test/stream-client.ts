@@ -1,7 +1,8 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import * as mqtt from 'mqtt';
-import fs from 'fs'
+import * as fs from 'fs'
+import { StreamResponse } from '../types/openapi';
 
 const privateJwk: nonRepudiationLibrary.JWK = {
     kty: 'EC',
@@ -47,7 +48,7 @@ const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
     rpcProviderUrl: 'http://95.211.3.244:8545'
 }
 
-const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2MzUwOTY4Niwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjYzNDIzMjg2fQ.9Xsm3YhqazfmU1ToDozjLfH-CrjH_sQJk-uo5xmmwCI'
+const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2MzU4MTc2NCwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjYzNDk1MzY0fQ.kV4QpEod9aiSgO4ri-roWZbB_1dZ_5jznYGcitU44Qc'
 const dataSourceUid = '123abc'
 const agreementId = 1
 
@@ -81,7 +82,8 @@ async function streamSubscribe() {
                 const pop: nonRepudiationLibrary.StoredProof<nonRepudiationLibrary.PoOPayload> = JSON.parse(message.toString())
                 await npConsumer.verifyPoP(pop.jws)
 
-                const fileName = jwtDecode<nonRepudiationLibrary.StoredProof<nonRepudiationLibrary.PoPPayload>>(pop.jws!).payload.exchange.cipherblockDgst
+                const fileName = pop.payload.exchange.cipherblockDgst
+
                 const decryptedBlock = await npConsumer.decrypt()
 
                 console.log(decryptedBlock)
@@ -93,9 +95,9 @@ async function streamSubscribe() {
                 stream.end()
 
             } else {
-                const content = JSON.parse(message.toString())
+                const content: StreamResponse = JSON.parse(message.toString())
 
-                await npConsumer.verifyPoO(content.poO.jws, content.cipherblock)
+                await npConsumer.verifyPoO(content.poo, content.cipherBlock)
 
                 const por = await npConsumer.generatePoR()
                 mqtt_client.publish(`/from/${consumerId}/${dataSourceUid}/${agreementId}`, JSON.stringify(por.jws))
@@ -109,3 +111,5 @@ async function streamSubscribe() {
         }
     }
 }
+
+streamSubscribe()
