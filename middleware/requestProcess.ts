@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express';
 import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, RegdsRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 

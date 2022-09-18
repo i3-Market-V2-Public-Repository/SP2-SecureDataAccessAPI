@@ -1,7 +1,7 @@
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import * as fs from 'fs'
-import { env } from '../config/env'
-import 'isomorphic-fetch'
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+import * as fs from 'fs';
+import { env } from '../config/env';
+import 'isomorphic-fetch';
 
 const privateJwk: nonRepudiationLibrary.JWK = {
     kty: 'EC',

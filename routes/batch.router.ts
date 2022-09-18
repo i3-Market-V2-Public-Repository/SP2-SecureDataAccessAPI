@@ -1,10 +1,10 @@
-import * as express from 'express'
-import * as requestProcess from '../middleware/requestProcess'
-import { requestValidation } from '../middleware/requestValidation'
-import *  as batchController from '../controllers/batch.controller'
-import passportPromise from '../middleware/passport'
-import { RequestHandler } from 'express'
-import config from '../config/config'
+import { requestValidation } from '../middleware/requestValidation';
+import { RequestHandler } from 'express';
+import * as express from 'express';
+import * as requestProcess from '../middleware/requestProcess';
+import * as batchController from '../controllers/batch.controller';
+import passportPromise from '../middleware/passport';
+import config from '../config/config';
 
 const batchRouter = express.Router()
 
@@ -26,7 +26,7 @@ export default async (): Promise<typeof batchRouter> => {
     )
 
     batchRouter.post('/pop', 
-    passport.authenticate('jwtBearer', { session: false }), batchController.pop
+    passport.authenticate('jwtBearer', { session: false }), requestProcess.popReqProcessing, requestValidation, batchController.pop
     )
     
     return batchRouter

@@ -1,8 +1,8 @@
-import passportPromise from '../middleware/passport'
-import * as express from 'express'
-import config from '../config/config'
-import { RequestHandler } from 'express'
-import { aclCheck } from '../controllers/streamAuth.controller'
+import { RequestHandler } from 'express';
+import { aclCheck } from '../controllers/streamAuth.controller';
+import * as express from 'express';
+import passportPromise from '../middleware/passport';
+import config from '../config/config';
 
 const streamAuthRouter = express.Router()
 

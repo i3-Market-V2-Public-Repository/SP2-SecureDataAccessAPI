@@ -1,8 +1,8 @@
 import { Request, NextFunction, Response } from 'express';
-import { decode } from 'jsonwebtoken'
+import { decode } from 'jsonwebtoken';
 import { _createJwt } from '../common/common';
 import { TokenSet } from 'openid-client';
-import * as util from 'util'
+import * as util from 'util';
 
 export async function oidcCb(req: Request, res: Response, next: NextFunction) {
 

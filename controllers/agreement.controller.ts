@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from 'express'
-import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library'
-import { openDb } from '../sqlite/sqlite'
-import { retrieveRawPaymentTransaction, retrievePrice } from '../common/common'
-import { PaymentBody } from '../types/openapi'
+import { NextFunction, Request, Response } from 'express';
+import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library';
+import { openDb } from '../sqlite/sqlite';
+import { retrieveRawPaymentTransaction, retrievePrice } from '../common/common';
+import { PaymentBody } from '../types/openapi';
 
-//THIS WILL BE REMOVED AFTER TESTING
+//generate new keys
 const privateJwk:JWK = {
     kty: 'EC',
     crv: 'P-256',

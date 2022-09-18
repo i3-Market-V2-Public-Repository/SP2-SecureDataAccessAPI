@@ -1,21 +1,21 @@
 'use strict'
-import * as express from 'express'
-import * as session from 'express-session'
-import * as http from 'http'
-import * as morgan from 'morgan'
-import * as crypto from 'crypto'
-import batchRoutesPromise from './routes/batch.router'
-import agreementRoutesPromise from './routes/agreement.router'
-import dataTransferReportRouterPromise from './routes/dataTransferReport.router'
-import oidcAuthRouterPromise from './routes/oidcAuth.router'
-import streamAuthRouterPromise from './routes/streamAuth.router'
-import streamRouterPromise from './routes/stream.router'
-import config from './config/config'
-import passportPromise from './middleware/passport'
-import mqttinit from './mqtt/mqttInit'
-import { mqttProcess } from './mqtt/mqtt'
-import { errorMiddleware } from './middleware/error'
-import { initializeDb } from './sqlite/initializeDatabase'
+import * as express from 'express';
+import * as session from 'express-session';
+import * as http from 'http';
+import * as morgan from 'morgan';
+import * as crypto from 'crypto';
+import batchRoutesPromise from './routes/batch.router';
+import agreementRoutesPromise from './routes/agreement.router';
+import dataTransferReportRouterPromise from './routes/dataTransferReport.router';
+import oidcAuthRouterPromise from './routes/oidcAuth.router';
+import streamAuthRouterPromise from './routes/streamAuth.router';
+import streamRouterPromise from './routes/stream.router';
+import config from './config/config';
+import passportPromise from './middleware/passport';
+import mqttinit from './mqtt/mqttInit';
+import { mqttProcess } from './mqtt/mqtt';
+import { errorMiddleware } from './middleware/error';
+import { initializeDb } from './sqlite/initializeDatabase';
 
 
 const main = async function (): Promise<void> {

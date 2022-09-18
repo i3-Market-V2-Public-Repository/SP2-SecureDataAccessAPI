@@ -1,12 +1,11 @@
 import { env } from "../config/env";
 import { JsonMapOfData, PaymentBody, ResponseData, TransactionObject } from "../types/openapi";
-import { Agreement } from '../types/openapi';
-import * as fs from 'fs'
-import * as crypto from 'crypto'
-import 'isomorphic-fetch';
 import { JwtClaims } from '../types/openapi';
-import config from '../config/config'
-import * as jwt from 'jsonwebtoken'
+import * as fs from 'fs';
+import * as crypto from 'crypto';
+import * as jwt from 'jsonwebtoken';
+import config from '../config/config';
+import 'isomorphic-fetch';
 
 export async function retrieveRawPaymentTransaction(payment: PaymentBody) {
 

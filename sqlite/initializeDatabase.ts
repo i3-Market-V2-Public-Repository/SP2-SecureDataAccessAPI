@@ -1,5 +1,5 @@
 import { openDb, createTables } from "./sqlite";
-import { env } from '../config/env'
+import { env } from '../config/env';
 
 export async function initializeDb() {
     

@@ -1,5 +1,5 @@
+import { MqttOptions } from '../types/openapi';
 import * as mqtt from 'mqtt';
-import { MqttOptions } from '../types/openapi'
 
 class MqttInit {
 

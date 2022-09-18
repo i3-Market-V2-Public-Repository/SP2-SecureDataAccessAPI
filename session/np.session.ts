@@ -1,5 +1,5 @@
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import { Mode } from '../types/openapi'
+import { Mode } from '../types/openapi';
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 
 class NpSession {
 

@@ -1,8 +1,8 @@
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import jwtDecode, { JwtPayload } from "jwt-decode";
-import * as mqtt from 'mqtt';
-import * as fs from 'fs'
 import { StreamResponse } from '../types/openapi';
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+import * as mqtt from 'mqtt';
+import * as fs from 'fs';
+import jwtDecode, { JwtPayload } from "jwt-decode";
 
 const privateJwk: nonRepudiationLibrary.JWK = {
     kty: 'EC',

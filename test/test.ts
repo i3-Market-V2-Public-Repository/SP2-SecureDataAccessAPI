@@ -1,10 +1,9 @@
 import { env } from "../config/env";
-import 'isomorphic-fetch'
-import * as fs from 'fs'
 import { JsonMapOfData, ResponseData } from "../types/openapi";
 import { getFilesizeInBytes } from "../common/common";
 import { openDb  } from "../sqlite/sqlite";
-
+import * as fs from 'fs';
+import 'isomorphic-fetch';
 
 const DigestFetch = require('digest-fetch');
 import { response } from "express";

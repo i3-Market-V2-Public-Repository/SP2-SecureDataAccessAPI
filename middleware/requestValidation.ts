@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express';
 import niv = require('node-input-validator');
 
 export function requestValidation(req: Request, res: Response, next: NextFunction) {

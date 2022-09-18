@@ -1,10 +1,10 @@
-import passportPromise from '../middleware/passport'
-import * as express from 'express'
-import config from '../config/config'
-import { RequestHandler } from 'express'
+import { requestValidation } from '../middleware/requestValidation';
+import { RequestHandler } from 'express';
 import { registerDataSource, newData } from '../controllers/stream.controller';
-import * as requestProcess from '../middleware/requestProcess'
-import { requestValidation } from '../middleware/requestValidation'
+import * as requestProcess from '../middleware/requestProcess';
+import * as express from 'express';
+import passportPromise from '../middleware/passport';
+import config from '../config/config';
 
 const streamRouter = express.Router()
 

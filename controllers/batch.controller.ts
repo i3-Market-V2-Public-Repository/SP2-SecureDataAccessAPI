@@ -1,11 +1,11 @@
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
-import * as fs from 'fs'
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
 import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData, Mode } from '../types/openapi';
 import { getAgreement, getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
-import { openDb } from '../sqlite/sqlite'
-import { HttpError } from 'express-openapi-validator/dist/framework/types'
+import { openDb } from '../sqlite/sqlite';
+import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+import * as fs from 'fs';
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import npsession from '../session/np.session';
 

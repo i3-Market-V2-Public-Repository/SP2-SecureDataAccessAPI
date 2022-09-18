@@ -1,9 +1,9 @@
-import config from '../config/config'
-import * as passport from 'passport'
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
-import { Issuer, Strategy as OidcStrategy, TokenSet } from 'openid-client'
-import { findByUsername } from '../sqlite/sqlite'
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { Issuer, Strategy as OidcStrategy, TokenSet } from 'openid-client';
+import { findByUsername } from '../sqlite/sqlite';
 import { DigestStrategy } from 'passport-http';
+import * as passport from 'passport';
+import config from '../config/config';
 
 export default async (): Promise<typeof passport> => {
     const issuer = await Issuer.discover(config.oidc.providerUri)

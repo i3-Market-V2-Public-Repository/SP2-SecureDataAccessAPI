@@ -1,6 +1,6 @@
+import { Database, open } from 'sqlite';
+import { env } from '../config/env';
 import * as sqlite3  from 'sqlite3';
-import { Database, open } from 'sqlite'
-import { env } from '../config/env'
 
 export async function openDb() {
     const db = await open({

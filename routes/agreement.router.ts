@@ -1,7 +1,7 @@
-import * as express from 'express'
-import * as requestProcess from '../middleware/requestProcess'
-import { requestValidation } from '../middleware/requestValidation'
-import * as agreementController from '../controllers/agreement.controller'
+import { requestValidation } from '../middleware/requestValidation';
+import * as express from 'express';
+import * as requestProcess from '../middleware/requestProcess';
+import * as agreementController from '../controllers/agreement.controller';
 
 require('isomorphic-fetch');
 

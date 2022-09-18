@@ -1,8 +1,9 @@
-import passportPromise from '../middleware/passport'
-import * as express from 'express'
-import config from '../config/config'
 import { RequestHandler } from 'express'
+import * as express from 'express'
 import * as authController from '../controllers/oidcAuth.controller'
+import config from '../config/config'
+import passportPromise from '../middleware/passport'
+
 
 const authRouter = express.Router()
 

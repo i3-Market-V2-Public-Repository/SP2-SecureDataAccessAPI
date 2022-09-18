@@ -1,7 +1,8 @@
-import * as express from 'express'
-import * as requestProcess from '../middleware/requestProcess'
-import { requestValidation } from '../middleware/requestValidation'
-import *  as dataTransferReportController from '../controllers/dataTransferReport.controller'
+import { requestValidation } from '../middleware/requestValidation';
+import * as express from 'express';
+import * as requestProcess from '../middleware/requestProcess';
+import *  as dataTransferReportController from '../controllers/dataTransferReport.controller';
+
 require('isomorphic-fetch');
 
 const dataTransferReportRouter = express.Router()

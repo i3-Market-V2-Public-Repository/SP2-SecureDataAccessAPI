@@ -1,6 +1,6 @@
-import { randomFillSync } from 'crypto'
-import { ClientMetadata } from 'openid-client'
-import { env } from './env'
+import { randomFillSync } from 'crypto';
+import { ClientMetadata } from 'openid-client';
+import { env } from './env';
 
 const server = {
   addr: env.addr,

@@ -1,4 +1,4 @@
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 
 export interface ApiError {
     name: string;

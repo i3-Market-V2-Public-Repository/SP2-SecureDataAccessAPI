@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { fetchSignedResolution } from '../common/common';
-import { VerificationResolutionPayload } from '@i3m/non-repudiation-library'
-import * as nonRepudiationLibrary from '@i3m/non-repudiation-library'
-import { openDb } from '../sqlite/sqlite'
+import { VerificationResolutionPayload } from '@i3m/non-repudiation-library';
+import { openDb } from '../sqlite/sqlite';
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+
 
 export async function nrpCompletenessCheck(req: Request, res: Response, next: NextFunction) {
 
@@ -56,7 +57,7 @@ export async function accountDataBlock(req: Request, res: Response, next: NextFu
         const selectResult = await db.get(select, params)
 
         res.send(selectResult)
-        
+
     } catch (error) {
         next(error)
     }
