@@ -187,3 +187,8 @@ export interface StreamResponse {
     poo: string;
     cipherBlock: string;
 }
+
+export interface DataExchangeAgreementReq {
+    consumerPublicKey: object;
+    providerPublicKey: object;
+}

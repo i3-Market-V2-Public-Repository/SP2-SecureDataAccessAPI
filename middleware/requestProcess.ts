@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, RegdsRequest, VerificationRequest } from '../types/openapi';
+import { BatchRequest, DataExchangeAgreementReq, FeeRequest, ListOfVerificationRequest, PopRequest, RegdsRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -26,7 +26,7 @@ export function batchReqProcessing(req: Request, res: Response, next: NextFuncti
   next()
 }
 
-export function dataExchangeAgreementReqProcessing(req: Request, res: Response, next: NextFunction) {
+export function getProviderPublicKeyReqProcessing(req: Request, res: Response, next: NextFunction) {
 
   const input: DataExchangeAgreement = req.body
 
@@ -133,6 +133,21 @@ export function regdsReqProcessing(req: Request, res: Response, next: NextFuncti
   }
 
   res.locals.reqParams = { input, rules, msg }
+
+  next()
+}
+
+export function dataExchangeAgreementReqProcessing(req: Request, res: Response, next: NextFunction) {
+
+  const input: DataExchangeAgreementReq = req.body
+
+  const rules = {
+    'consumerPublicKey': 'required|object',
+    'providerPublicKey': 'required|object'
+  };
+
+
+  res.locals.reqParams = { input, rules }
 
   next()
 }

@@ -9,9 +9,10 @@ const agreementRouter = express.Router()
 
 export default async (): Promise<typeof agreementRouter> => {
 
-    agreementRouter.post('/getProviderPublicKey', requestProcess.dataExchangeAgreementReqProcessing, requestValidation, agreementController.getDaaPublicKey)
+    agreementRouter.post('/getProviderPublicKey', requestProcess.getProviderPublicKeyReqProcessing, requestValidation, agreementController.getDaaPublicKey)
     agreementRouter.post('/payMarketFee/:offeringId', requestProcess.feeReqProcessing, requestValidation, agreementController.payMarketFee)
     agreementRouter.get('/getAgreementId/:exchangeId', agreementController.getAgreementId)
+    agreementRouter.post('/getDataExchangeAgreement', requestProcess.dataExchangeAgreementReqProcessing, requestValidation, agreementController.getDataExchangeAgreement)
 
     return agreementRouter
 }
