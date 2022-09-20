@@ -47,7 +47,7 @@ const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
     rpcProviderUrl: 'http://95.211.3.244:8545'
 }
 
-const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2MzUxNzUwMSwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjYzNDMxMTAxfQ.EZT7XPFkPdmX8sBvCp1wh2-hcpC4uL_NkSXHVKlNecw"
+const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2Mzc4NzQzNiwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjYzNzAxMDM2fQ.x10DVzPJO0CZtV9VFzYpuP4XIDjFUPDUCCbgc-H7GxY"
 const signature = "0xf90127148302e34683bebc209483a99f8170a0ba72fbcb2bd4eb739de96460385480b8c4909770870000000000000000000000000000000000000000000000000000000000000060000000000000000000000000ff8eab3673c32559b63ff391772aa300121a94d4000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000002433646461623465312d373866612d353935342d616639372d353732323436346431316337000000000000000000000000000000000000000000000000000000001ba0d6cc284f4d4ca9a737ea9ec39805f811a35905b615a02089fb667d181d9ed5899f431803a8ceb119c451da83120df97c977d67c240ccec275fac92aa1f2c0ca2"
 
 const agreementId = 1
@@ -111,7 +111,7 @@ const oneFile = async () => {
             let pop = await requestPop(bearerToken, por)
             console.log("The pop is: " + JSON.stringify(pop))
 
-            await npConsumer.verifyPoP(pop.jws)
+            await npConsumer.verifyPoP(pop.pop)
 
             const decryptedBlock = await npConsumer.decrypt()
             console.log(decryptedBlock)
@@ -142,7 +142,7 @@ async function requestPop(bearerToken: string, por: nonRepudiationLibrary.Stored
         },
         body: JSON.stringify({ por: por.jws }),
     })
-    const pop: Pop = await sendPor.json()
+    const pop = await sendPor.json()
     console.log(JSON.stringify(pop))
     return pop
 }
@@ -171,7 +171,7 @@ interface Content {
     transactionObject?: object
 }
 
-interface Pop {
-    jws: string;
-    payload: object;
-}
+// interface Pop {
+//     jws: string;
+//     payload: object;
+// }

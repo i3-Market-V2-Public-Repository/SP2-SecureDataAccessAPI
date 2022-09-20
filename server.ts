@@ -16,7 +16,9 @@ import mqttinit from './mqtt/mqttInit';
 import { mqttProcess } from './mqtt/mqtt';
 import { errorMiddleware } from './middleware/error';
 import { initializeDb } from './sqlite/initializeDatabase';
+import swaggerUi = require('swagger-ui-express');
 
+const swaggerFile = require('./oas/open-api.json')
 
 const main = async function (): Promise<void> {
 
@@ -33,12 +35,15 @@ const main = async function (): Promise<void> {
   app.use(express.urlencoded({ extended: false }))
   app.use(morgan('dev'))
   app.use(passport.initialize())
-  app.use('/', await streamRouterPromise())
-  app.use('/oidc', await oidcAuthRouterPromise())
-  app.use('/batch', await batchRoutesPromise())
-  app.use('/stream/auth', await streamAuthRouterPromise())
-  app.use('/agreement', await agreementRoutesPromise())
-  app.use('/report', await dataTransferReportRouterPromise())
+  app.use('/api/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+  app.use('/', 
+  await streamRouterPromise(),
+  await oidcAuthRouterPromise(),
+  await batchRoutesPromise(),
+  await streamAuthRouterPromise(),
+  await agreementRoutesPromise(),
+  await dataTransferReportRouterPromise()
+  )
   app.use(errorMiddleware)
 
   await initializeDb()

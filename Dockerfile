@@ -4,8 +4,6 @@ COPY . /secure-data-access-api/
 
 WORKDIR /secure-data-access-api
 
-COPY ./scripts/dependencies.sh ./dependencies.sh
-
-RUN chmod +x /dependencies.sh && bash /dependencies.sh
+RUN chmod +x ./scripts/dependencies.sh && bash ./scripts/dependencies.sh
 
 CMD ["npm", "start"]

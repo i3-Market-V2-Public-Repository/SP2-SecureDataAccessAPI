@@ -25,6 +25,21 @@ const publicJwk: JWK = {
 export async function getDaaPublicKey(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['AgreementController']
+        // #swagger.description = 'Endpoint to retrieve the public key of the provider.'
+
+        /* 
+        #swagger.requestBody = {
+               required: true,
+               content : {
+                   "application/json": {
+                        schema: { $ref: "#/components/schemas/providerPublicKeyReq" }
+                    }
+                }
+        } 
+        */
+
         const dataExchangeAgreement: DataExchangeAgreement = req.body
         const consumerPublicKey = dataExchangeAgreement.orig
 
@@ -47,16 +62,33 @@ export async function getDaaPublicKey(req: Request, res: Response, next: NextFun
 
         await db.close()
 
+        /* #swagger.responses[200] = { 
+               schema: { $ref: "#/components/schemas/publicKey" }
+            } */
+            
         res.send(publicJwk)
 
     } catch (error) {
-        next(error)
+        next(error) // #swagger.responses[500]
     }
 }
 
 export async function payMarketFee(req: Request, res: Response, next: NextFunction) {
 
     try {
+        // #swagger.tags = ['AgreementController']
+        // #swagger.description = 'Endpoint to pay the market fee.'
+
+        /* 
+        #swagger.requestBody = {
+               required: true,
+               content : {
+                   "application/json": {
+                        schema: { $ref: "#/components/schemas/payMarketFeeReq" }
+                    }
+                }
+        } 
+        */
         const offeringId = req.params.offeringId
         const payment: PaymentBody = req.body
 
@@ -66,15 +98,22 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         console.log(payment)
         const rawPaymentTransaction = await retrieveRawPaymentTransaction(payment)
 
+        /* #swagger.responses[200] = { 
+               schema: { $ref: "#/components/schemas/transactionObject" }
+        } */
+
         res.send(rawPaymentTransaction)
     } catch (error) {
-        next(error)
+        next(error) // #swagger.responses[500]
     }
 }
 
 export async function getAgreementId(req: Request, res: Response, next: NextFunction) {
 
     try {
+        // #swagger.tags = ['AgreementController']
+        // #swagger.description = 'Endpoint to retrieve the agreement id.'
+
         const exchangeId = req.params.exchangeId
 
         const db = await openDb()
@@ -85,12 +124,18 @@ export async function getAgreementId(req: Request, res: Response, next: NextFunc
         const selectResult = await db.get(select, params)
 
         if (selectResult != undefined) {
+
+            /* #swagger.responses[200] = { 
+               schema: { $ref: "#/components/schemas/agreementId" }
+            } */
+
             res.send(selectResult)
         } else {
-            res.send({ msg: `No agreement found for exchangeId ${exchangeId}` })
+            // #swagger.responses[404]
+            res.status(404).send({ msg: `No agreement found for exchangeId ${exchangeId}` })
         }
     } catch (error) {
-        next(error)
+        next(error) // #swagger.responses[500]
     }
 }
 
@@ -98,6 +143,19 @@ export async function getDataExchangeAgreement(req: Request, res: Response, next
 
     try {
 
+        // #swagger.tags = ['AgreementController']
+        // #swagger.description = 'Endpoint to retrieve the data exchange agreement.'
+
+        /* 
+        #swagger.requestBody = {
+               required: true,
+               content : {
+                   "application/json": {
+                        schema: { $ref: "#/components/schemas/dataExchangeAgreementReq" }
+                    }
+                }
+        } 
+        */
         const consumerPublicKey: JWK = req.body.consumerPublicKey
         const providerPublicKey: JWK = req.body.providerPublicKey
 
@@ -111,9 +169,10 @@ export async function getDataExchangeAgreement(req: Request, res: Response, next
         if (selectResult != undefined) {
             res.send(selectResult)
         } else {
+            // #swagger.responses[404]
             res.send({ msg: `No data exchange agreement found for the respective public keys` })
         }
     } catch (error) {
-        next(error)
+        next(error) // #swagger.responses[500]
     }
 }

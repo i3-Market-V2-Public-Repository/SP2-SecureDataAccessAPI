@@ -12,6 +12,20 @@ import npsession from '../session/np.session';
 async function poo(req: Request, res: Response, next: NextFunction) {
     try {
 
+        // #swagger.tags = ['BatchController']
+        // #swagger.description = 'Endpoint to retrieve batch data.'
+
+        /* 
+        #swagger.requestBody = {
+            required: true,
+                content : {
+                    "application/json": {
+                        schema: { $ref: "#/components/schemas/batchReq" }
+                        }
+                    }
+        } 
+        */
+
         const mode = 'batch'
         // Let us define the RPC endopint to the ledger (just in case we don't want to use the default one)
         const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
@@ -44,6 +58,7 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         console.log(selectResult)
         if (!selectResult) {
             const error = {
+                // #swagger.responses[404]
                 status: 404,
                 path: 'batch.controller.poo',
                 name: 'Not found',
@@ -76,6 +91,7 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
                 console.log(`Daa response is ${batchDaaResponse}`)
 
+                /* #swagger.responses[200 - First Block Response] = { schema: { $ref: "#/components/schemas/batchFirstBlockRes" }} */
                 res.send(batchDaaResponse)
 
             } else if ((blockId != 'null' && blockAck == 'null') || (blockId != 'null' && blockAck != 'null')) {
@@ -95,6 +111,7 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
                 npsession.set(decoded.sub!, batchReqParams.agreementId, npProvider, mode)
 
+                /* #swagger.responses[200 - Block Response] = { schema: { $ref: "#/components/schemas/batchRes" }} */
                 res.send(batchDaaResponse)
 
             } else if (blockId == 'null' && blockAck != 'null') {
@@ -102,9 +119,11 @@ async function poo(req: Request, res: Response, next: NextFunction) {
                 const transactionObject = await deployRawPaymentTransaction(signature)
                 const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null", "transactionObject": transactionObject }
 
+                /* #swagger.responses[200 - Last Block Response] = { schema: { $ref: "#/components/schemas/batchLastBlockRes" }} */
                 res.send(batchDaaResponse);
             }
         } else {
+            // #swagger.responses[404]
             const error = {
                 status: 404,
                 path: 'batch.controller.poo',
@@ -120,6 +139,21 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
 async function pop(req: Request, res: Response, next: NextFunction) {
     try {
+
+        // #swagger.tags = ['BatchController']
+        // #swagger.description = 'Endpoint to retrieve the proof of publication.'
+
+        /* 
+        #swagger.requestBody = {
+            required: true,
+                content : {
+                    "application/json": {
+                        schema: { $ref: "#/components/schemas/popReq" }
+                        }
+                    }
+        } 
+        */
+
         const mode = 'batch'
 
         const por = req.body.por
@@ -141,9 +175,9 @@ async function pop(req: Request, res: Response, next: NextFunction) {
         const timestamp = getTimestamp()
         const exchangeId = poo?.payload.exchange.id
 
-        const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest, Mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
         const select = 'SELECT * FROM Accounting WHERE Pop=?'
-        const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest]
+        const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest, mode]
         const selectParams = [pop.jws]
 
         const db = await openDb()
@@ -155,7 +189,8 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         npsession.set(consumerId, agreementId, npProvider, mode)
 
-        res.send(pop)
+        /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/popRes" }} */
+        res.send({pop: pop.jws})
     } catch (error) {
         next(error)
     }

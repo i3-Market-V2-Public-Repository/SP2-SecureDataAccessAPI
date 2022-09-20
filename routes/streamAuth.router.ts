@@ -22,11 +22,11 @@ export default async (): Promise<typeof streamAuthRouter> => {
     const passport = await passportPromise()
     streamAuthRouter.use(cors)
     
-    streamAuthRouter.post('/user', textParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
+    streamAuthRouter.post('/stream/auth/user', textParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
         res.sendStatus(200)
       })
     
-    streamAuthRouter.post('/acl', jsonParser, passport.authenticate('jwtBearer', { session: false }), aclCheck)
+    streamAuthRouter.post('/stream/auth/acl', jsonParser, passport.authenticate('jwtBearer', { session: false }), aclCheck)
 
     return streamAuthRouter
 }

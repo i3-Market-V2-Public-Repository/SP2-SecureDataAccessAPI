@@ -20,15 +20,22 @@ export default async (): Promise<typeof authRouter> => {
     const passport = await passportPromise()
     authRouter.use(cors)
   
-    authRouter.get('/login/provider',
+    authRouter.get('/oidc/login/provider',
+    // #swagger.tags = ['OidcAuthController']
+    // #swagger.description = 'Endpoint to retrieve a bearer token as provider.'
       passport.authenticate('oidc', { scope: 'openid vc vce:provider' })
     )
   
-    authRouter.get('/login/consumer',
+    authRouter.get('/oidc/login/consumer',
+    // #swagger.tags = ['OidcAuthController']
+    // #swagger.description = 'Endpoint to retrieve a bearer token as consumer.'
       passport.authenticate('oidc', { scope: 'openid vc vce:consumer' })
     )
-  
-    authRouter.get('/cb', 
+    
+
+    authRouter.get('/oidc/cb',
+    // #swagger.tags = ['OidcAuthController']
+    // #swagger.description = 'Endpoint for call back.' 
     passport.authenticate('oidc', { session: false }), authController.oidcCb
     )
 

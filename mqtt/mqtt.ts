@@ -115,9 +115,9 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const timestamp = getTimestamp()
             const exchangeId = poo?.payload.exchange.id
     
-            const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            const insert = 'INSERT INTO Accounting(Date, ConsumerId, ExchangeId, AgreementId, Poo, Por, Pop, VerificationRequest, Mode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
             const select = 'SELECT * FROM Accounting WHERE Pop=?'
-            const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest]
+            const insertParams = [timestamp, consumerId, exchangeId, agreementId, poo?.jws, por, pop?.jws, verificationRequest, mode]
             const selectParams = [pop.jws]
     
             const db = await openDb()

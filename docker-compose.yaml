@@ -7,15 +7,15 @@ services:
       args: 
         USER_ID: ${USER_ID-1000}
         GROUP_ID: ${GROUP_ID-1000}
-    image: secure-data-access-api
+    image: secure-data-access-api:3.0.0
     container_name: data-access-api
     networks:
       - dataaccessserver_i3m
     restart: unless-stopped
     env_file:
       - .env
-    # volumes:
-    #   - ./app:/app
+    volumes:
+       - db:/tmp/dataAccessDatabase.db3
     ports:
       - ${ADDRESS:-0.0.0.0}:${PORT:-3000}:${PORT:-3000}
     depends_on:
@@ -39,3 +39,5 @@ services:
 networks:
   dataaccessserver_i3m:
     driver: bridge
+volumes:
+  db:

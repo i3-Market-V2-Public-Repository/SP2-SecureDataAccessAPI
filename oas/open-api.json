@@ -1,0 +1,1127 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "3.0.0",
+    "title": "Secure Data Access API",
+    "description": "Secure Data Access API for the i3-Market Project",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "/"
+    },
+    {
+      "url": "http://95.211.3.244:3100"
+    },
+    {
+      "url": "http://95.211.3.249:3100"
+    },
+    {
+      "url": "http://95.211.3.250:3100"
+    },
+    {
+      "url": "http://95.211.3.251:3100",
+      "variables": {}
+    }
+  ],
+  "tags": [
+    {
+      "name": "AgreementController",
+      "description": "Endpoints for agreement and market fee"
+    },
+    {
+      "name": "BatchController",
+      "description": "Endpoints for batch data transfer"
+    },
+    {
+      "name": "StreamController",
+      "description": "Endpoints for stream data transfer."
+    },
+    {
+      "name": "StreamAuthController",
+      "description": "Endpoints used by mqtt broker to authenticate the consumer"
+    },
+    {
+      "name": "DataTransferReportController",
+      "description": "Endpoints related to transfer report"
+    },
+    {
+      "name": "OidcAuthController",
+      "description": "Endpoints to request a bearer token as consumer or provider"
+    }
+  ],
+  "paths": {
+    "/agreement/getProviderPublicKey": {
+      "post": {
+        "tags": [
+          "AgreementController"
+        ],
+        "description": "Endpoint to retrieve the public key of the provider.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/publicKey"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/publicKey"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/providerPublicKeyReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agreement/payMarketFee/{offeringId}": {
+      "post": {
+        "tags": [
+          "AgreementController"
+        ],
+        "description": "Endpoint to pay the market fee.",
+        "parameters": [
+          {
+            "name": "offeringId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/transactionObject"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/transactionObject"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/payMarketFeeReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agreement/getAgreementId/{exchangeId}": {
+      "get": {
+        "tags": [
+          "AgreementController"
+        ],
+        "description": "Endpoint to retrieve the agreement id.",
+        "parameters": [
+          {
+            "name": "exchangeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/agreementId"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/agreementId"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/agreement/getDataExchangeAgreement": {
+      "post": {
+        "tags": [
+          "AgreementController"
+        ],
+        "description": "Endpoint to retrieve the data exchange agreement.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/dataExchangeAgreementReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/batch/{data}/{agreementId}/{signature}": {
+      "post": {
+        "tags": [
+          "BatchController"
+        ],
+        "description": "Endpoint to retrieve batch data.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agreementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "signature",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "200 - First Block Response": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchFirstBlockRes"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchFirstBlockRes"
+                }
+              }
+            }
+          },
+          "200 - Block Response": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchRes"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchRes"
+                }
+              }
+            }
+          },
+          "200 - Last Block Response": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchLastBlockRes"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/batchLastBlockRes"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/batchReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/batch/pop": {
+      "post": {
+        "tags": [
+          "BatchController"
+        ],
+        "description": "Endpoint to retrieve the proof of publication.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/popRes"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/popRes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/popReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/report/nrpCompletenessCheck": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "verificationRequest": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/report/getListOfVerificationRequests/{agreementId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "agreementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/report/accountDataBlock/{exchangeId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "exchangeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/report/getSubId/{consumerDid}/{dataSourceUid}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "consumerDid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dataSourceUid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/report/streamingAccountReport/{subId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "subId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/report/getAccountSummary/{consumerDid}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "consumerDid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/oidc/login/provider": {
+      "get": {
+        "tags": [
+          "OidcAuthController"
+        ],
+        "description": "Endpoint to retrieve a bearer token as provider.",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/oidc/login/consumer": {
+      "get": {
+        "tags": [
+          "OidcAuthController"
+        ],
+        "description": "Endpoint to retrieve a bearer token as consumer.",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/oidc/cb": {
+      "get": {
+        "tags": [
+          "OidcAuthController"
+        ],
+        "description": "Endpoint for call back.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/regds": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uid": {
+                    "example": "any"
+                  },
+                  "description": {
+                    "example": "any"
+                  },
+                  "url": {
+                    "example": "any"
+                  },
+                  "action": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/newdata/{uid}": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/stream/auth/user": {
+      "post": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/stream/auth/acl": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientid": {
+                    "example": "any"
+                  },
+                  "topic": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "agreementId": {
+        "type": "object",
+        "properties": {
+          "AgreementId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "xml": {
+          "name": "agreementId"
+        }
+      },
+      "dataExchangeAgreementReq": {
+        "type": "object",
+        "properties": {
+          "consumerPublicKey": {
+            "type": "object",
+            "properties": {
+              "kty": {
+                "type": "string",
+                "example": "EC"
+              },
+              "crv": {
+                "type": "string",
+                "example": "P-256"
+              },
+              "x": {
+                "type": "string",
+                "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+              },
+              "y": {
+                "type": "string",
+                "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+              },
+              "alg": {
+                "type": "string",
+                "example": "ES256"
+              }
+            }
+          },
+          "providerPublicKey": {
+            "type": "object",
+            "properties": {
+              "kty": {
+                "type": "string",
+                "example": "EC"
+              },
+              "crv": {
+                "type": "string",
+                "example": "P-256"
+              },
+              "x": {
+                "type": "string",
+                "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+              },
+              "y": {
+                "type": "string",
+                "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+              },
+              "alg": {
+                "type": "string",
+                "example": "ES256"
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "dataExchangeAgreementReq"
+        }
+      },
+      "dataExchangeAgreement": {
+        "type": "object",
+        "properties": {
+          "DataExchangeAgreement": {
+            "type": "string",
+            "example": "{'orig':'{'kty':'EC','crv':'P-256','x':'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\',\\'y\\':\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\',\\'alg\\':\\'ES256\\'}','encAlg':'A256GCM','signingAlg':'ES256','hashAlg':'SHA-256','ledgerContractAddress':'0x8d407a1722633bdd1dcf221474be7a44c05d7c2f','ledgerSignerAddress':'0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903','pooToPorDelay':10000,'pooToPopDelay':20000,'pooToSecretDelay':150000,'dest':'{\\'kty\\':\\'EC\\',\\'crv\\':\\'P-256\\',\\'x\\':\\'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\',\\'y\\':\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\',\\'alg\\':\\'ES256\\'}'}"
+          }
+        },
+        "xml": {
+          "name": "dataExchangeAgreement"
+        }
+      },
+      "providerPublicKeyReq": {
+        "type": "object",
+        "properties": {
+          "orig": {
+            "type": "object",
+            "properties": {
+              "kty": {
+                "type": "string",
+                "example": "EC"
+              },
+              "crv": {
+                "type": "string",
+                "example": "P-256"
+              },
+              "x": {
+                "type": "string",
+                "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+              },
+              "y": {
+                "type": "string",
+                "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+              },
+              "alg": {
+                "type": "string",
+                "example": "ES256"
+              }
+            }
+          },
+          "encAlg": {
+            "type": "string",
+            "example": "A256GCM"
+          },
+          "signingAlg": {
+            "type": "string",
+            "example": "ES256"
+          },
+          "hashAlg": {
+            "type": "string",
+            "example": "SHA-256"
+          },
+          "ledgerContractAddress": {
+            "type": "string",
+            "example": "0x8d407a1722633bdd1dcf221474be7a44c05d7c2f"
+          },
+          "ledgerSignerAddress": {
+            "type": "string",
+            "example": "0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903"
+          },
+          "pooToPorDelay": {
+            "type": "number",
+            "example": 10000
+          },
+          "pooToPopDelay": {
+            "type": "number",
+            "example": 20000
+          },
+          "pooToSecretDelay": {
+            "type": "number",
+            "example": 150000
+          }
+        },
+        "xml": {
+          "name": "providerPublicKeyReq"
+        }
+      },
+      "publicKey": {
+        "type": "object",
+        "properties": {
+          "kty": {
+            "type": "string",
+            "example": "EC"
+          },
+          "crv": {
+            "type": "string",
+            "example": "P-256"
+          },
+          "x": {
+            "type": "string",
+            "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+          },
+          "y": {
+            "type": "string",
+            "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+          },
+          "alg": {
+            "type": "string",
+            "example": "ES256"
+          }
+        },
+        "xml": {
+          "name": "publicKey"
+        }
+      },
+      "payMarketFeeReq": {
+        "type": "object",
+        "properties": {
+          "senderAddress": {
+            "type": "string",
+            "example": "0x5126Eb9a03c75A732ecCA20EBfca4041142154B5"
+          },
+          "providerAddress": {
+            "type": "string",
+            "example": "0xaad8734423CDd561355B39aFFDD8AFcbE1755f6a"
+          }
+        },
+        "xml": {
+          "name": "payMarketFeeReq"
+        }
+      },
+      "transactionObject": {
+        "type": "object",
+        "properties": {
+          "transferId": {
+            "type": "string",
+            "example": "6fa4973b-11ce-56d8-8544-660e1a334b92"
+          },
+          "transactionObject": {
+            "type": "object",
+            "properties": {
+              "chainId": {
+                "type": "number",
+                "example": 1
+              },
+              "nonce": {
+                "type": "number",
+                "example": 1
+              },
+              "gasLimit": {
+                "type": "number",
+                "example": 6721975
+              },
+              "gasPrice": {
+                "type": "number",
+                "example": 201966
+              },
+              "to": {
+                "type": "string",
+                "example": "0x5780262041318FD9fc8E345F665bEc7684E15C75"
+              },
+              "from": {
+                "type": "string",
+                "example": "0xb3a0ED21c54196E4B446D79b7925766aa86BC196"
+              },
+              "data": {
+                "type": "string",
+                "example": "0x909770870000000000000000000000000000000000000000000000000000000000000060000000000000000000000000f3d15f97bf1b55b486486de2d819649bc92fff6b000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000002438646265373434372d333637362d353262632d623439312d30393638653735626134663400000000000000000000000000000000000000000000000000000000"
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "transactionObject"
+        }
+      },
+      "batchReq": {
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "example": "null"
+          },
+          "blockAck": {
+            "type": "string",
+            "example": "null"
+          }
+        },
+        "xml": {
+          "name": "batchReq"
+        }
+      },
+      "batchFirstBlockRes": {
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "example": "null"
+          },
+          "nextBlockId": {
+            "type": "string",
+            "example": "7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d"
+          },
+          "poo": {
+            "type": "string",
+            "example": "null"
+          },
+          "cipherBlock": {
+            "type": "string",
+            "example": "null"
+          }
+        },
+        "xml": {
+          "name": "batchFirstBlockRes"
+        }
+      },
+      "batchRes": {
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "example": "aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e"
+          },
+          "nextBlockId": {
+            "type": "string",
+            "example": "7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d"
+          },
+          "poo": {
+            "type": "string",
+            "example": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJQb08iLCJpc3MiOiJvcmlnIiwiZXhjaGFuZ2UiOnsib3JpZyI6IntcImFsZ1wiOlwiRVMyNTZcIixcImNydlwiOlwiUC0yNTZcIixcImt0eVwiOlwiRUNcIixcInhcIjpcIjM0MnRUb1pydmo2NEstMHZQdXE5QjV0OEJ4M2tqT2xWVzU3NFEydm8tellcIixcInlcIjpcIkt0dWtFay01WlN2Snpub1dZbDk5bDZ4OENieGJNRFlKN2ZCYndVOERucGtcIn0iLCJlbmNBbGciOiJBMjU2R0NNIiwic2lnbmluZ0FsZyI6IkVTMjU2IiwiaGFzaEFsZyI6IlNIQS0yNTYiLCJsZWRnZXJDb250cmFjdEFkZHJlc3MiOiIweDhkNDA3YTE3MjI2MzNiZGQxZGNmMjIxNDc0YmU3YTQ0YzA1ZDdjMmYiLCJsZWRnZXJTaWduZXJBZGRyZXNzIjoiMHgxN2JkMTJjMjEzNGFmYzFmNmU5MzAyYTUzMmVmZTMwYzE5YjllOTAzIiwicG9vVG9Qb3JEZWxheSI6MTAwMDAsInBvb1RvUG9wRGVsYXkiOjIwMDAwLCJwb29Ub1NlY3JldERlbGF5IjoxNTAwMDAsImRlc3QiOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCIzNDJ0VG9acnZqNjRLLTB2UHVxOUI1dDhCeDNrak9sVlc1NzRRMnZvLXpZXCIsXCJ5XCI6XCJLdHVrRWstNVpTdkp6bm9XWWw5OWw2eDhDYnhiTURZSjdmQmJ3VThEbnBrXCJ9IiwiY2lwaGVyYmxvY2tEZ3N0IjoiSjlZS0hDeHZ0bU5odklUYlVnaTFJRmdwdkZkVXhJMW9CYTNvT2stUkpBWSIsImJsb2NrQ29tbWl0bWVudCI6InRoeUh4WHR5X1BpQURfV1pEbEZyUnNJXzBhZ2FYdFgtNGZjMFVFUnhLakUiLCJzZWNyZXRDb21taXRtZW50IjoiYzNVMmllUG1rd1RBRXVVNzVmRHNFS2I4TWNEeFVBWFpvTzR6ME1YTnZTVSIsImlkIjoia1M2WXdSZ1ZaYzVrVnF0WEtLWWJSRHJaSnh5cG1FZWdIV1lYamZQVFE3SSJ9LCJpYXQiOjE2NjM2OTgzNjF9.gaJQrpUBzlE1UhA9a_zPLnXYcsLSz722MwsdQ0GjRIwzxoV0L13oWgc_wKzi0ffjYym02qlYUOHoT4o4z_32sA"
+          },
+          "cipherBlock": {
+            "type": "string",
+            "example": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..4hORyefJAgonAo86.dsArbqg4ADQHmT1fUOZr_tx6nafVTOH3gbDiTLltiSNESkNlPbOYpt_wVX-jlj86qs7IddImFmYvUrABjuTOB2obt6W7NV3w0ZvIaMhp0gQewFY5sCRi9skTSNe0tuxCRsEvSX4on4Awyas26KsiTXRbOiwn99P5OrCp86m5c59xqH8lbazyuazBm65UJM2JSLWU33a9a8B-cgkk0PaJc0ouwJ1l0Y5ffMMnPlgYHfuNJLsQOE-jkgQFrCnODEW_HxKWf_KFkFhk8ti9W6hmXFLSVs4zk752qij5zemq_tgdHMmR9Exusob9aA1xKGalCLSy6XpI8Ho2psAw73VJKA.6lTdMEI-og4gYaj8YmfJuw"
+          }
+        },
+        "xml": {
+          "name": "batchRes"
+        }
+      },
+      "batchLastBlockRes": {
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "example": "null"
+          },
+          "nextBlockId": {
+            "type": "string",
+            "example": "null"
+          },
+          "poo": {
+            "type": "string",
+            "example": "null"
+          },
+          "cipherBlock": {
+            "type": "string",
+            "example": "null"
+          },
+          "transactionObject": {
+            "type": "object",
+            "properties": {
+              "transactionObject": {
+                "type": "object",
+                "properties": {
+                  "blockHash": {
+                    "type": "string",
+                    "example": "0xe3e80f60a730e5d24d7299c917edeb3fd4d224fcfa802184d498c73c03d18320"
+                  },
+                  "blockNumber": {
+                    "type": "number",
+                    "example": 51532
+                  },
+                  "contractAddress": {},
+                  "cumulativeGasUsed": {
+                    "type": "number",
+                    "example": 186954
+                  },
+                  "from": {
+                    "type": "string",
+                    "example": "0xa067e6b09b77f027b1c8e024469d820ca75dd2bf"
+                  },
+                  "gasUsed": {
+                    "type": "number",
+                    "example": 186954
+                  },
+                  "logs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "example": "0x83a99f8170a0ba72fbCb2bD4eB739de964603854"
+                        },
+                        "topics": {
+                          "type": "array",
+                          "example": [
+                            "0xdc51063e5ef77d99943e8395b0bb76177d3959e8bf37a0e41937bdd9e99fc8ff"
+                          ],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "data": {
+                          "type": "string",
+                          "example": "0x000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000ff8eab3673c32559b63ff391772aa300121a94d4000000000000000000000000000000000000000000000000000000000000002433646461623465312d373866612d353935342d616639372d35373232343634643131633700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b65786368616e67655f696e000000000000000000000000000000000000000000"
+                        },
+                        "blockNumber": {
+                          "type": "number",
+                          "example": 51532
+                        },
+                        "transactionHash": {
+                          "type": "string",
+                          "example": "0x89a7ec9974fcdd99bd1427c410da48fb9e51f74c57837b38be3b43e9f3d8a32f"
+                        },
+                        "transactionIndex": {
+                          "type": "number",
+                          "example": 0
+                        },
+                        "blockHash": {
+                          "type": "string",
+                          "example": "0xe3e80f60a730e5d24d7299c917edeb3fd4d224fcfa802184d498c73c03d18320"
+                        },
+                        "logIndex": {
+                          "type": "number",
+                          "example": 1
+                        },
+                        "removed": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "id": {
+                          "type": "string",
+                          "example": "log_4b6bbe14"
+                        }
+                      }
+                    }
+                  },
+                  "logsBloom": {
+                    "type": "string",
+                    "example": "0x00000000000000000800000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000040000000000000000010000000000000000000000000000000000000000000020000000000000400000800000000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000008000002000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000008000000000000000020000000000000000040000040000000000000000010000000000000080000000000"
+                  },
+                  "status": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "to": {
+                    "type": "string",
+                    "example": "0x83a99f8170a0ba72fbcb2bd4eb739de964603854"
+                  },
+                  "transactionHash": {
+                    "type": "string",
+                    "example": "0x89a7ec9974fcdd99bd1427c410da48fb9e51f74c57837b38be3b43e9f3d8a32f"
+                  },
+                  "transactionIndex": {
+                    "type": "number",
+                    "example": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "batchLastBlockRes"
+        }
+      },
+      "popReq": {
+        "type": "object",
+        "properties": {
+          "por": {
+            "type": "string",
+            "example": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJQb1IiLCJpc3MiOiJkZXN0IiwiZXhjaGFuZ2UiOnsib3JpZyI6IntcImFsZ1wiOlwiRVMyNTZcIixcImNydlwiOlwiUC0yNTZcIixcImt0eVwiOlwiRUNcIixcInhcIjpcIjM0MnRUb1pydmo2NEstMHZQdXE5QjV0OEJ4M2tqT2xWVzU3NFEydm8tellcIixcInlcIjpcIkt0dWtFay01WlN2Snpub1dZbDk5bDZ4OENieGJNRFlKN2ZCYndVOERucGtcIn0iLCJlbmNBbGciOiJBMjU2R0NNIiwic2lnbmluZ0FsZyI6IkVTMjU2IiwiaGFzaEFsZyI6IlNIQS0yNTYiLCJsZWRnZXJDb250cmFjdEFkZHJlc3MiOiIweDhkNDA3YTE3MjI2MzNiZGQxZGNmMjIxNDc0YmU3YTQ0YzA1ZDdjMmYiLCJsZWRnZXJTaWduZXJBZGRyZXNzIjoiMHgxN2JkMTJjMjEzNGFmYzFmNmU5MzAyYTUzMmVmZTMwYzE5YjllOTAzIiwicG9vVG9Qb3JEZWxheSI6MTAwMDAsInBvb1RvUG9wRGVsYXkiOjIwMDAwLCJwb29Ub1NlY3JldERlbGF5IjoxNTAwMDAsImRlc3QiOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCIzNDJ0VG9acnZqNjRLLTB2UHVxOUI1dDhCeDNrak9sVlc1NzRRMnZvLXpZXCIsXCJ5XCI6XCJLdHVrRWstNVpTdkp6bm9XWWw5OWw2eDhDYnhiTURZSjdmQmJ3VThEbnBrXCJ9IiwiY2lwaGVyYmxvY2tEZ3N0IjoiYXhaYVpNM25JT2tmTG9zZ3FBR2lnTTNyNkdLTXJSNWZ3UGlRNFJQQW5zUSIsImJsb2NrQ29tbWl0bWVudCI6InRoeUh4WHR5X1BpQURfV1pEbEZyUnNJXzBhZ2FYdFgtNGZjMFVFUnhLakUiLCJzZWNyZXRDb21taXRtZW50IjoiMU1RU2xGUzlvRzhtOVJOcG5HTlNLNHJQU2Y1NTBZWFNiTkZOck12YTl2RSIsImlkIjoiMmVPRDlwWFkwMWR5YmY1aVl5LURvanlmQjdValg1RWR1V3hKbWxQdkFVYyJ9LCJwb28iOiJleUpoYkdjaU9pSkZVekkxTmlKOS5leUp3Y205dlpsUjVjR1VpT2lKUWIwOGlMQ0pwYzNNaU9pSnZjbWxuSWl3aVpYaGphR0Z1WjJVaU9uc2liM0pwWnlJNkludGNJbUZzWjF3aU9sd2lSVk15TlRaY0lpeGNJbU55ZGx3aU9sd2lVQzB5TlRaY0lpeGNJbXQwZVZ3aU9sd2lSVU5jSWl4Y0luaGNJanBjSWpNME1uUlViMXB5ZG1vMk5Fc3RNSFpRZFhFNVFqVjBPRUo0TTJ0cVQyeFdWelUzTkZFeWRtOHRlbGxjSWl4Y0lubGNJanBjSWt0MGRXdEZheTAxV2xOMlNucHViMWRaYkRrNWJEWjRPRU5pZUdKTlJGbEtOMlpDWW5kVk9FUnVjR3RjSW4waUxDSmxibU5CYkdjaU9pSkJNalUyUjBOTklpd2ljMmxuYm1sdVowRnNaeUk2SWtWVE1qVTJJaXdpYUdGemFFRnNaeUk2SWxOSVFTMHlOVFlpTENKc1pXUm5aWEpEYjI1MGNtRmpkRUZrWkhKbGMzTWlPaUl3ZURoa05EQTNZVEUzTWpJMk16TmlaR1F4WkdObU1qSXhORGMwWW1VM1lUUTBZekExWkRkak1tWWlMQ0pzWldSblpYSlRhV2R1WlhKQlpHUnlaWE56SWpvaU1IZ3hOMkprTVRKak1qRXpOR0ZtWXpGbU5tVTVNekF5WVRVek1tVm1aVE13WXpFNVlqbGxPVEF6SWl3aWNHOXZWRzlRYjNKRVpXeGhlU0k2TVRBd01EQXNJbkJ2YjFSdlVHOXdSR1ZzWVhraU9qSXdNREF3TENKd2IyOVViMU5sWTNKbGRFUmxiR0Y1SWpveE5UQXdNREFzSW1SbGMzUWlPaUo3WENKaGJHZGNJanBjSWtWVE1qVTJYQ0lzWENKamNuWmNJanBjSWxBdE1qVTJYQ0lzWENKcmRIbGNJanBjSWtWRFhDSXNYQ0o0WENJNlhDSXpOREowVkc5YWNuWnFOalJMTFRCMlVIVnhPVUkxZERoQ2VETnJhazlzVmxjMU56UlJNblp2TFhwWlhDSXNYQ0o1WENJNlhDSkxkSFZyUldzdE5WcFRka3A2Ym05WFdXdzVPV3cyZURoRFluaGlUVVJaU2pkbVFtSjNWVGhFYm5CclhDSjlJaXdpWTJsd2FHVnlZbXh2WTJ0RVozTjBJam9pWVhoYVlWcE5NMjVKVDJ0bVRHOXpaM0ZCUjJsblRUTnlOa2RMVFhKU05XWjNVR2xSTkZKUVFXNXpVU0lzSW1Kc2IyTnJRMjl0YldsMGJXVnVkQ0k2SW5Sb2VVaDRXSFI1WDFCcFFVUmZWMXBFYkVaeVVuTkpYekJoWjJGWWRGZ3ROR1pqTUZWRlVuaExha1VpTENKelpXTnlaWFJEYjIxdGFYUnRaVzUwSWpvaU1VMVJVMnhHVXpsdlJ6aHRPVkpPY0c1SFRsTkxOSEpRVTJZMU5UQlpXRk5pVGtaT2NrMTJZVGwyUlNJc0ltbGtJam9pTW1WUFJEbHdXRmt3TVdSNVltWTFhVmw1TFVSdmFubG1RamRWYWxnMVJXUjFWM2hLYld4UWRrRlZZeUo5TENKcFlYUWlPakUyTmpNMk56SXlPRE45LmZiRjI0T0lKUXpNajEwaXZzWDRIdHp0VURCVkhmZEtZQkJ2ZmNpSDNlZFJuWTB4aExPelczZmJmOS1ZRnI5R0lOM0FlWllEOE0za0xKbFZrb0JKSndnIiwiaWF0IjoxNjYzNjcyMjgzfQ.xn8oNMJT161g9TjRIZDy9vundr4ON1k8NWLdAcnPpNTj8aqRJVIvs8mi3uLDUZ5YIWKqzmqVzyK24O7L9CQnvw"
+          }
+        },
+        "xml": {
+          "name": "popReq"
+        }
+      },
+      "popRes": {
+        "type": "object",
+        "properties": {
+          "pop": {
+            "type": "string",
+            "example": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJQb1AiLCJpc3MiOiJvcmlnIiwiZXhjaGFuZ2UiOnsib3JpZyI6IntcImFsZ1wiOlwiRVMyNTZcIixcImNydlwiOlwiUC0yNTZcIixcImt0eVwiOlwiRUNcIixcInhcIjpcIjM0MnRUb1pydmo2NEstMHZQdXE5QjV0OEJ4M2tqT2xWVzU3NFEydm8tellcIixcInlcIjpcIkt0dWtFay01WlN2Snpub1dZbDk5bDZ4OENieGJNRFlKN2ZCYndVOERucGtcIn0iLCJlbmNBbGciOiJBMjU2R0NNIiwic2lnbmluZ0FsZyI6IkVTMjU2IiwiaGFzaEFsZyI6IlNIQS0yNTYiLCJsZWRnZXJDb250cmFjdEFkZHJlc3MiOiIweDhkNDA3YTE3MjI2MzNiZGQxZGNmMjIxNDc0YmU3YTQ0YzA1ZDdjMmYiLCJsZWRnZXJTaWduZXJBZGRyZXNzIjoiMHgxN2JkMTJjMjEzNGFmYzFmNmU5MzAyYTUzMmVmZTMwYzE5YjllOTAzIiwicG9vVG9Qb3JEZWxheSI6MTAwMDAsInBvb1RvUG9wRGVsYXkiOjIwMDAwLCJwb29Ub1NlY3JldERlbGF5IjoxNTAwMDAsImRlc3QiOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCIzNDJ0VG9acnZqNjRLLTB2UHVxOUI1dDhCeDNrak9sVlc1NzRRMnZvLXpZXCIsXCJ5XCI6XCJLdHVrRWstNVpTdkp6bm9XWWw5OWw2eDhDYnhiTURZSjdmQmJ3VThEbnBrXCJ9IiwiY2lwaGVyYmxvY2tEZ3N0IjoiYXhaYVpNM25JT2tmTG9zZ3FBR2lnTTNyNkdLTXJSNWZ3UGlRNFJQQW5zUSIsImJsb2NrQ29tbWl0bWVudCI6InRoeUh4WHR5X1BpQURfV1pEbEZyUnNJXzBhZ2FYdFgtNGZjMFVFUnhLakUiLCJzZWNyZXRDb21taXRtZW50IjoiMU1RU2xGUzlvRzhtOVJOcG5HTlNLNHJQU2Y1NTBZWFNiTkZOck12YTl2RSIsImlkIjoiMmVPRDlwWFkwMWR5YmY1aVl5LURvanlmQjdValg1RWR1V3hKbWxQdkFVYyJ9LCJwb3IiOiJleUpoYkdjaU9pSkZVekkxTmlKOS5leUp3Y205dlpsUjVjR1VpT2lKUWIxSWlMQ0pwYzNNaU9pSmtaWE4wSWl3aVpYaGphR0Z1WjJVaU9uc2liM0pwWnlJNkludGNJbUZzWjF3aU9sd2lSVk15TlRaY0lpeGNJbU55ZGx3aU9sd2lVQzB5TlRaY0lpeGNJbXQwZVZ3aU9sd2lSVU5jSWl4Y0luaGNJanBjSWpNME1uUlViMXB5ZG1vMk5Fc3RNSFpRZFhFNVFqVjBPRUo0TTJ0cVQyeFdWelUzTkZFeWRtOHRlbGxjSWl4Y0lubGNJanBjSWt0MGRXdEZheTAxV2xOMlNucHViMWRaYkRrNWJEWjRPRU5pZUdKTlJGbEtOMlpDWW5kVk9FUnVjR3RjSW4waUxDSmxibU5CYkdjaU9pSkJNalUyUjBOTklpd2ljMmxuYm1sdVowRnNaeUk2SWtWVE1qVTJJaXdpYUdGemFFRnNaeUk2SWxOSVFTMHlOVFlpTENKc1pXUm5aWEpEYjI1MGNtRmpkRUZrWkhKbGMzTWlPaUl3ZURoa05EQTNZVEUzTWpJMk16TmlaR1F4WkdObU1qSXhORGMwWW1VM1lUUTBZekExWkRkak1tWWlMQ0pzWldSblpYSlRhV2R1WlhKQlpHUnlaWE56SWpvaU1IZ3hOMkprTVRKak1qRXpOR0ZtWXpGbU5tVTVNekF5WVRVek1tVm1aVE13WXpFNVlqbGxPVEF6SWl3aWNHOXZWRzlRYjNKRVpXeGhlU0k2TVRBd01EQXNJbkJ2YjFSdlVHOXdSR1ZzWVhraU9qSXdNREF3TENKd2IyOVViMU5sWTNKbGRFUmxiR0Y1SWpveE5UQXdNREFzSW1SbGMzUWlPaUo3WENKaGJHZGNJanBjSWtWVE1qVTJYQ0lzWENKamNuWmNJanBjSWxBdE1qVTJYQ0lzWENKcmRIbGNJanBjSWtWRFhDSXNYQ0o0WENJNlhDSXpOREowVkc5YWNuWnFOalJMTFRCMlVIVnhPVUkxZERoQ2VETnJhazlzVmxjMU56UlJNblp2TFhwWlhDSXNYQ0o1WENJNlhDSkxkSFZyUldzdE5WcFRka3A2Ym05WFdXdzVPV3cyZURoRFluaGlUVVJaU2pkbVFtSjNWVGhFYm5CclhDSjlJaXdpWTJsd2FHVnlZbXh2WTJ0RVozTjBJam9pWVhoYVlWcE5NMjVKVDJ0bVRHOXpaM0ZCUjJsblRUTnlOa2RMVFhKU05XWjNVR2xSTkZKUVFXNXpVU0lzSW1Kc2IyTnJRMjl0YldsMGJXVnVkQ0k2SW5Sb2VVaDRXSFI1WDFCcFFVUmZWMXBFYkVaeVVuTkpYekJoWjJGWWRGZ3ROR1pqTUZWRlVuaExha1VpTENKelpXTnlaWFJEYjIxdGFYUnRaVzUwSWpvaU1VMVJVMnhHVXpsdlJ6aHRPVkpPY0c1SFRsTkxOSEpRVTJZMU5UQlpXRk5pVGtaT2NrMTJZVGwyUlNJc0ltbGtJam9pTW1WUFJEbHdXRmt3TVdSNVltWTFhVmw1TFVSdmFubG1RamRWYWxnMVJXUjFWM2hLYld4UWRrRlZZeUo5TENKd2IyOGlPaUpsZVVwb1lrZGphVTlwU2taVmVra3hUbWxLT1M1bGVVcDNZMjA1ZGxwc1VqVmpSMVZwVDJsS1VXSXdPR2xNUTBwd1l6Tk5hVTlwU25aamJXeHVTV2wzYVZwWWFHcGhSMFoxV2pKVmFVOXVjMmxpTTBwd1dubEpOa2x1ZEdOSmJVWnpXakYzYVU5c2QybFNWazE1VGxSYVkwbHBlR05KYlU1NVpHeDNhVTlzZDJsVlF6QjVUbFJhWTBscGVHTkpiWFF3WlZaM2FVOXNkMmxTVlU1alNXbDRZMGx1YUdOSmFuQmpTV3BOTUUxdVVsVmlNWEI1Wkcxdk1rNUZjM1JOU0ZwUlpGaEZOVkZxVmpCUFJVbzBUVEowY1ZReWVGZFdlbFV6VGtaRmVXUnRPSFJsYkd4alNXbDRZMGx1YkdOSmFuQmpTV3QwTUdSWGRFWmhlVEF4VjJ4T01sTnVjSFZpTVdSYVlrUnJOV0pFV2pSUFJVNXBaVWRLVGxKR2JFdE9NbHBEV1c1a1ZrOUZVblZqUjNSalNXNHdhVXhEU214aWJVNUNZa2RqYVU5cFNrSk5hbFV5VWpCT1RrbHBkMmxqTW14dVltMXNkVm93Um5OYWVVazJTV3RXVkUxcVZUSkphWGRwWVVkR2VtRkZSbk5hZVVrMlNXeE9TVkZUTUhsT1ZGbHBURU5LYzFwWFVtNWFXRXBFWWpJMU1HTnRSbXBrUlVacldraEtiR016VFdsUGFVbDNaVVJvYTA1RVFUTlpWRVV6VFdwSk1rMTZUbWxhUjFGNFdrZE9iVTFxU1hoT1JHTXdXVzFWTTFsVVVUQlpla0V4V2tSa2FrMXRXV2xNUTBweldsZFNibHBZU2xSaFYyUjFXbGhLUWxwSFVubGFXRTU2U1dwdmFVMUlaM2hPTWtwclRWUkthazFxUlhwT1IwWnRXWHBHYlU1dFZUVk5la0Y1V1ZSVmVrMXRWbTFhVkUxM1dYcEZOVmxxYkd4UFZFRjZTV2wzYVdOSE9YWldSemxSWWpOS1JWcFhlR2hsVTBrMlRWUkJkMDFFUVhOSmJrSjJZakZTZGxWSE9YZFNSMVp6V1ZocmFVOXFTWGROUkVGM1RFTktkMkl5T1ZWaU1VNXNXVE5LYkdSRlVteGlSMFkxU1dwdmVFNVVRWGROUkVGelNXMVNiR016VVdsUGFVbzNXRU5LYUdKSFpHTkphbkJqU1d0V1ZFMXFWVEpZUTBseldFTkthbU51V21OSmFuQmpTV3hCZEUxcVZUSllRMGx6V0VOS2NtUkliR05KYW5CalNXdFdSRmhEU1hOWVEwbzBXRU5KTmxoRFNYcE9SRW93VmtjNVlXTnVXbkZPYWxKTVRGUkNNbFZJVm5oUFZVa3haRVJvUTJWRVRuSmhhemx6Vm14ak1VNTZVbEpOYmxwMlRGaHdXbGhEU1hOWVEwbzFXRU5KTmxoRFNreGtTRlp5VWxkemRFNVdjRlJrYTNBMlltMDVXRmRYZHpWUFYzY3laVVJvUkZsdWFHbFVWVkphVTJwa2JWRnRTak5XVkdoRlltNUNjbGhEU2psSmFYZHBXVEpzZDJGSFZubFpiWGgyV1RKMFJWb3pUakJKYW05cFdWaG9ZVmxXY0U1Tk1qVktWREowYlZSSE9YcGFNMFpDVWpKc2JsUlVUbmxPYTJSTVZGaEtVMDVYV2pOVlIyeFNUa1pLVVZGWE5YcFZVMGx6U1cxS2MySXlUbkpSTWpsMFlsZHNNR0pYVm5Wa1EwazJTVzVTYjJWVmFEUlhTRkkxV0RGQ2NGRlZVbVpXTVhCRllrVmFlVlZ1VGtwWWVrSm9XakpHV1dSR1ozUk9SMXBxVFVaV1JsVnVhRXhoYTFWcFRFTktlbHBYVG5sYVdGSkVZakl4ZEdGWVVuUmFWelV3U1dwdmFVMVZNVkpWTW5oSFZYcHNkbEo2YUhSUFZrcFBZMGMxU0ZSc1RreE9TRXBSVlRKWk1VNVVRbHBYUms1cFZHdGFUMk5yTVRKWlZHd3lVbE5KYzBsdGJHdEphbTlwVFcxV1VGSkViSGRYUm10M1RWZFNOVmx0V1RGaFZtdzFURlZTZG1GdWJHMVJhbVJXWVd4bk1WSlhVakZXTTJoTFlsZDRVV1JyUmxaWmVVbzVURU5LY0ZsWVVXbFBha1V5VG1wTk1rNTZTWGxQUkU0NUxtWmlSakkwVDBsS1VYcE5hakV3YVhaeldEUklkSHAwVlVSQ1ZraG1aRXRaUWtKMlptTnBTRE5sWkZKdVdUQjRhRXhQZWxjelptSm1PUzFaUm5JNVIwbE9NMEZsV2xsRU9FMHphMHhLYkZacmIwSktTbmRuSWl3aWFXRjBJam94TmpZek5qY3lNamd6ZlEueG44b05NSlQxNjFnOVRqUklaRHk5dnVuZHI0T04xazhOV0xkQWNuUHBOVGo4YXFSSlZJdnM4bWkzdUxEVVo1WUlXS3F6bXFWenlLMjRPN0w5Q1FudnciLCJzZWNyZXQiOiJ7XCJrdHlcIjpcIm9jdFwiLFwia1wiOlwiakcxMll3N0xsOUtlaXpodG04UGcwMmxRTUV5UDhqaVF5cXlFc0YzakhZWVwiLFwiYWxnXCI6XCJBMjU2R0NNXCJ9IiwidmVyaWZpY2F0aW9uQ29kZSI6IjB4NjYzYmI4YTUyYTg3YjYwNDJjNTYzOGJjN2FiMTRjZDgxNWI3NDRjOGE2MzU4MGFiNzliOWRjZGMzOTQxN2UzZSIsImlhdCI6MTY2MzY3MjI4NH0.P_1sEiVi5buE_EJ5LGqIvh5UnukzcFHIfqwd97-dwUMRPtk7iYKRWswVFbpSx1gmHgy50BUkGIiDvjcWNttqdw"
+          }
+        },
+        "xml": {
+          "name": "popRes"
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}
