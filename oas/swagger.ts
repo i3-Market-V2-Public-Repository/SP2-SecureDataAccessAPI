@@ -50,8 +50,17 @@ const doc = {
                 consumerPublicKey: { kty: 'EC', crv: 'P-256', x: '342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY', y: 'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk', alg: 'ES256' },
                 providerPublicKey: { kty: 'EC', crv: 'P-256', x: '342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY', y: 'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk', alg: 'ES256' }
             },
-            dataExchangeAgreement: {
-                DataExchangeAgreement: '{\'orig\':\'{\'kty\':\'EC\',\'crv\':\'P-256\',\'x\':\'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\\',\\\'y\\\':\\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\\',\\\'alg\\\':\\\'ES256\\\'}\',\'encAlg\':\'A256GCM\',\'signingAlg\':\'ES256\',\'hashAlg\':\'SHA-256\',\'ledgerContractAddress\':\'0x8d407a1722633bdd1dcf221474be7a44c05d7c2f\',\'ledgerSignerAddress\':\'0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903\',\'pooToPorDelay\':10000,\'pooToPopDelay\':20000,\'pooToSecretDelay\':150000,\'dest\':\'{\\\'kty\\\':\\\'EC\\\',\\\'crv\\\':\\\'P-256\\\',\\\'x\\\':\\\'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\\',\\\'y\\\':\\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\\',\\\'alg\\\':\\\'ES256\\\'}\'}'
+            dataExchangeAgreementRes: {
+                orig: "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}",
+                encAlg: "A256GCM",
+                signingAlg: "ES256",
+                hashAlg: "SHA-256",
+                ledgerContractAddress: "0x8d407a1722633bdd1dcf221474be7a44c05d7c2f",
+                ledgerSignerAddress: "0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903",
+                pooToPorDelay: 10000,
+                pooToPopDelay: 20000,
+                pooToSecretDelay: 150000,
+                dest: "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}"
             },
             providerPublicKeyReq: {
                 orig: { 'kty': 'EC', 'crv': 'P-256', 'x': '342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY', 'y': 'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk', 'alg': 'ES256' },

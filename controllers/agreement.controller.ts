@@ -164,10 +164,11 @@ export async function getDataExchangeAgreement(req: Request, res: Response, next
         const select = 'SELECT DataExchangeAgreement FROM DataExchangeAgreements WHERE ConsumerPublicKey=? AND ProviderPublicKey=?'
         const params = [JSON.stringify(consumerPublicKey), JSON.stringify(providerPublicKey)]
 
-        const selectResult: string | undefined = await db.get(select, params)
+        const selectResult = await db.get(select, params)
 
         if (selectResult != undefined) {
-            res.send(selectResult)
+            /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/dataExchangeAgreementRes" }} */
+            res.send(JSON.parse(selectResult.DataExchangeAgreement))
         } else {
             // #swagger.responses[404]
             res.send({ msg: `No data exchange agreement found for the respective public keys` })

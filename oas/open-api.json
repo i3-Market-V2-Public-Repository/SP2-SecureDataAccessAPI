@@ -197,7 +197,19 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dataExchangeAgreementRes"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/dataExchangeAgreementRes"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found"
@@ -819,16 +831,52 @@
           "name": "dataExchangeAgreementReq"
         }
       },
-      "dataExchangeAgreement": {
+      "dataExchangeAgreementRes": {
         "type": "object",
         "properties": {
-          "DataExchangeAgreement": {
+          "orig": {
             "type": "string",
-            "example": "{'orig':'{'kty':'EC','crv':'P-256','x':'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\',\\'y\\':\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\',\\'alg\\':\\'ES256\\'}','encAlg':'A256GCM','signingAlg':'ES256','hashAlg':'SHA-256','ledgerContractAddress':'0x8d407a1722633bdd1dcf221474be7a44c05d7c2f','ledgerSignerAddress':'0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903','pooToPorDelay':10000,'pooToPopDelay':20000,'pooToSecretDelay':150000,'dest':'{\\'kty\\':\\'EC\\',\\'crv\\':\\'P-256\\',\\'x\\':\\'342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\\',\\'y\\':\\'KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\\',\\'alg\\':\\'ES256\\'}'}"
+            "example": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}"
+          },
+          "encAlg": {
+            "type": "string",
+            "example": "A256GCM"
+          },
+          "signingAlg": {
+            "type": "string",
+            "example": "ES256"
+          },
+          "hashAlg": {
+            "type": "string",
+            "example": "SHA-256"
+          },
+          "ledgerContractAddress": {
+            "type": "string",
+            "example": "0x8d407a1722633bdd1dcf221474be7a44c05d7c2f"
+          },
+          "ledgerSignerAddress": {
+            "type": "string",
+            "example": "0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903"
+          },
+          "pooToPorDelay": {
+            "type": "number",
+            "example": 10000
+          },
+          "pooToPopDelay": {
+            "type": "number",
+            "example": 20000
+          },
+          "pooToSecretDelay": {
+            "type": "number",
+            "example": 150000
+          },
+          "dest": {
+            "type": "string",
+            "example": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}"
           }
         },
         "xml": {
-          "name": "dataExchangeAgreement"
+          "name": "dataExchangeAgreementRes"
         }
       },
       "providerPublicKeyReq": {
