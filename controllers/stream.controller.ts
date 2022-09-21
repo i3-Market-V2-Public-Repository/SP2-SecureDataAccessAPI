@@ -10,6 +10,21 @@ import npsession from '../session/np.session';
 export async function registerDataSource(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['StreamController']
+        // #swagger.description = 'Endpoint to register or unregister a datasource.'
+
+        /* 
+        #swagger.requestBody = {
+            required: true,
+                content : {
+                    "application/json": {
+                        schema: { $ref: "#/components/schemas/regdsReq" }
+                        }
+                    }
+        } 
+        */
+
         const uid = req.body.uid
         const description = req.body.description
         const url = req.body.url
@@ -53,13 +68,27 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
 export async function newData(req: Request, res: Response, next: NextFunction) {
     try {
+
+        // #swagger.tags = ['StreamController']
+        // #swagger.description = 'Endpoint for the datasource to send data to. The data will be forwarded to the mqtt broker.'
+
+        /* 
+        #swagger.requestBody = {
+            required: true,
+                content : {
+                    "application/octet-stream": {
+                        }
+                    }
+        } 
+        */
+
         const mode = 'stream'
 
         const data = req.body
         const uid = req.params.uid
-        
+
         const client = mqttinit.get('client')
-    
+
         const rawBufferData = Buffer.from(data)
         const dataSent = rawBufferData.length
 
@@ -72,15 +101,15 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
 
         console.log(selectResult) //to delete
 
-        selectResult.forEach(async(row: StreamSubscribersRow) => {
+        selectResult.forEach(async (row: StreamSubscribersRow) => {
 
             const agreement: Agreement = await getAgreement(Number(row.AgreementId))
 
             const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
             const selectParams = [agreement.consumerPublicKey, agreement.providerPublicKey]
-            
+
             const selectResult = await db.get(select, selectParams)
-            
+
             const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
             const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 
@@ -96,13 +125,13 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
             const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
 
             const update = 'UPDATE StreamSubscribers SET AmmountOfDataReceived=? WHERE SubId=?'
-            const updateParams = [ ammountOfDataReceived, row.SubId]
+            const updateParams = [ammountOfDataReceived, row.SubId]
 
             await db.run(update, updateParams)
         })
 
         res.send({ msg: 'Data sent to broker' })
-      } catch (error) {
-            next(error)
-      }
+    } catch (error) {
+        next(error)
+    }
 }

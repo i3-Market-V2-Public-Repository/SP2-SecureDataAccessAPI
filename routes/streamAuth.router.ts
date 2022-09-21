@@ -22,11 +22,18 @@ export default async (): Promise<typeof streamAuthRouter> => {
     const passport = await passportPromise()
     streamAuthRouter.use(cors)
     
-    streamAuthRouter.post('/stream/auth/user', textParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
-        res.sendStatus(200)
-      })
+    streamAuthRouter.post('/stream/auth/user',
+    // #swagger.tags = ['StreamAuthController']
+    // #swagger.description = 'Endpoint to auth stream user.'
+    textParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
+      res.sendStatus(200)
+    })
     
-    streamAuthRouter.post('/stream/auth/acl', jsonParser, passport.authenticate('jwtBearer', { session: false }), aclCheck)
+    streamAuthRouter.post('/stream/auth/acl', 
+    // #swagger.tags = ['StreamAuthController']
+    // #swagger.description = 'Endpoint to check if topic subscribed to matches the requirements.'
+    jsonParser, passport.authenticate('jwtBearer', { session: false }), aclCheck
+    )
 
     return streamAuthRouter
 }

@@ -8,6 +8,21 @@ import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 export async function nrpCompletenessCheck(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to check if the non-repudiable protocol was completed for a block of data.'
+
+        /* 
+        #swagger.requestBody = {
+            required: true,
+                content : {
+                    "application/json": {
+                        schema: { $ref: "#/components/schemas/verificationReq" }
+                        }
+                    }
+        } 
+        */
+
         const verificationRequest = req.body.verificationRequest
         const signedResolution = await fetchSignedResolution(verificationRequest)
 
@@ -18,6 +33,7 @@ export async function nrpCompletenessCheck(req: Request, res: Response, next: Ne
             console.log("NRP Protocol is completed")
         }
 
+        /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/verificationRes" }} */
         res.send({ resolution: payload.resolution })
     } catch (error) {
         next(error)
@@ -27,6 +43,10 @@ export async function nrpCompletenessCheck(req: Request, res: Response, next: Ne
 export async function getListOfVerificationRequests(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to get all the verification requests for an agreement.'
+
         const agreementId = req.params.agreementId
 
         const select = 'SELECT VerificationRequest FROM Accounting WHERE AgreementId=?'
@@ -37,6 +57,7 @@ export async function getListOfVerificationRequests(req: Request, res: Response,
 
         await db.close()
 
+        /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/listOfVerificationRequestsRes" }} */
         res.send(selectResult)
     } catch (error) {
         next(error)
@@ -46,6 +67,9 @@ export async function getListOfVerificationRequests(req: Request, res: Response,
 export async function accountDataBlock(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to get information about a transfered data block.'
 
         const exchangeId = req.params.exchangeId
 
@@ -59,12 +83,11 @@ export async function accountDataBlock(req: Request, res: Response, next: NextFu
         await db.close()
 
         if (selectResult !== undefined) {
+            /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/accountDataBlockRes" }} */
             res.send(selectResult)
         } else {
             res.send({ msg: `No transfer with exchange id ${exchangeId} found` })
         }
-
-
     } catch (error) {
         next(error)
     }
@@ -73,6 +96,9 @@ export async function accountDataBlock(req: Request, res: Response, next: NextFu
 export async function getSubId(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to get the subscription id.'
 
         const consumerDid = req.params.consumerDid
         const dataSourceUid = req.params.dataSourceUid
@@ -86,6 +112,7 @@ export async function getSubId(req: Request, res: Response, next: NextFunction) 
         await db.close()
 
         if (selectResult !== undefined) {
+            /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/getSubIdRes" }} */
             res.send(selectResult)
         } else {
             res.send({ msg: `User ${consumerDid} is not subscribed` })
@@ -100,6 +127,9 @@ export async function streamingAccountReport(req: Request, res: Response, next: 
 
     try {
 
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to get information about a subscription.'
+
         const subId = req.params.subId
         const db = await openDb()
 
@@ -111,6 +141,7 @@ export async function streamingAccountReport(req: Request, res: Response, next: 
         await db.close()
 
         if (selectResult !== undefined) {
+            /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/streamingAccountReportRes" }} */
             res.send(selectResult)
         } else {
             res.send({ msg: `No subscriber with subId ${subId} found` })
@@ -124,6 +155,9 @@ export async function streamingAccountReport(req: Request, res: Response, next: 
 export async function getAccountSummary(req: Request, res: Response, next: NextFunction) {
 
     try {
+
+        // #swagger.tags = ['DataTransferReportController']
+        // #swagger.description = 'Endpoint to get information about ammount of data transfered for a consumer.'
 
         const consumerDid = req.params.consumerDid
         const mode = 'batch'
@@ -142,11 +176,12 @@ export async function getAccountSummary(req: Request, res: Response, next: NextF
         const nrOfBlocksReceived = selectBatchtResult.length + 1
 
         await db.close()
-        
+
         if (selectStreamResult !== undefined) {
-            res.send({ Batch: { nrOfBlocksReceived: nrOfBlocksReceived }, Stream: { ammountOfDataReceived: selectStreamResult.AmmountOfDataReceived } })
+            /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/getAccountSummaryRes" }} */
+            res.send({ Batch: { nrOfBlocksReceived: nrOfBlocksReceived }, Stream: { ammountOfDataReceivedInBytes: selectStreamResult.AmmountOfDataReceived } })
         } else {
-            res.send({ Batch: { nrOfBlocksReceived: nrOfBlocksReceived }, Stream: { ammountOfDataReceived: 0 } })
+            res.send({ Batch: { nrOfBlocksReceived: nrOfBlocksReceived }, Stream: { ammountOfDataReceivedInBytes: 0 } })
         }
 
     } catch (error) {
