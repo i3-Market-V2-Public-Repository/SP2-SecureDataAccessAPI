@@ -1,4 +1,5 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library';
 
 export interface ApiError {
     name: string;
@@ -191,4 +192,10 @@ export interface StreamResponse {
 export interface DataExchangeAgreementReq {
     consumerPublicKey: object;
     providerPublicKey: object;
+}
+
+export interface Prerequisite {
+    agreementId: number;
+    providerPrivateKey: JWK;
+    dataExchangeAgreement: DataExchangeAgreement;
 }
