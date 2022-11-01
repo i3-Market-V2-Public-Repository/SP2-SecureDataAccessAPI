@@ -1,8 +1,8 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { Request, NextFunction, Response } from 'express';
-import { getAgreement, getTimestamp } from '../common/common';
+import { getTimestamp } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
-import { Agreement, StreamResponse, StreamSubscribersRow } from '../types/openapi';
+import { StreamResponse, StreamSubscribersRow } from '../types/openapi';
 import { env } from '../config/env';
 import mqttinit from '../mqtt/mqttInit';
 import npsession from '../session/np.session';
@@ -103,14 +103,18 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
 
         selectResult.forEach(async (row: StreamSubscribersRow) => {
 
-            const agreement: Agreement = await getAgreement(Number(row.AgreementId))
+            //const agreement: Agreement = await getAgreement(Number(row.AgreementId))
+            const agreementId = Number(row.AgreementId)
 
-            const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
-            const selectParams = [agreement.consumerPublicKey, agreement.providerPublicKey]
+            const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
+            const selectParams = [agreementId]
 
             const selectResult = await db.get(select, selectParams)
 
             const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
+            dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
+            dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
+
             const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 
             const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, env.providerDltSigningKeyHex)

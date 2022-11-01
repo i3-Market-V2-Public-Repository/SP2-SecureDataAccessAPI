@@ -54,48 +54,6 @@
     }
   ],
   "paths": {
-    "/agreement/getProviderPublicKey": {
-      "post": {
-        "tags": [
-          "AgreementController"
-        ],
-        "description": "Endpoint to retrieve the public key of the provider.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/publicKey"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/publicKey"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Unprocessable Entity"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/providerPublicKeyReq"
-              }
-            }
-          }
-        }
-      }
-    },
     "/agreement/payMarketFee/{offeringId}": {
       "post": {
         "tags": [
@@ -188,13 +146,22 @@
         }
       }
     },
-    "/agreement/getDataExchangeAgreement": {
-      "post": {
+    "/agreement/getDataExchangeAgreement/{agreementId}": {
+      "get": {
         "tags": [
           "AgreementController"
         ],
         "description": "Endpoint to retrieve the data exchange agreement.",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "agreementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -220,13 +187,33 @@
           "500": {
             "description": "Internal Server Error"
           }
+        }
+      }
+    },
+    "/agreement/dataExchangeAgreementInfo": {
+      "post": {
+        "tags": [
+          "AgreementController"
+        ],
+        "description": "Endpoint for info about the data exchange agreement to be inserted by the provider.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         },
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/dataExchangeAgreementReq"
+                "$ref": "#/components/schemas/prerequisiteInfo"
               }
             }
           }
@@ -646,6 +633,24 @@
         }
       }
     },
+    "/openapi": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "description": "",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/regds": {
       "post": {
         "tags": [
@@ -773,10 +778,138 @@
           "name": "agreementId"
         }
       },
-      "dataExchangeAgreementReq": {
+      "prerequisiteInfo": {
         "type": "object",
         "properties": {
-          "consumerPublicKey": {
+          "agreementId": {
+            "type": "number",
+            "example": 1
+          },
+          "providerPrivateKey": {
+            "type": "object",
+            "properties": {
+              "kty": {
+                "type": "string",
+                "example": "EC"
+              },
+              "crv": {
+                "type": "string",
+                "example": "P-256"
+              },
+              "x": {
+                "type": "string",
+                "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+              },
+              "y": {
+                "type": "string",
+                "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+              },
+              "d": {
+                "type": "string",
+                "example": "bF0ufFC_AHEY98HIZnqLdIMp1Hnh-8Y2sglQ15GOp7k"
+              },
+              "alg": {
+                "type": "string",
+                "example": "ES256"
+              }
+            }
+          },
+          "dataExchangeAgreement": {
+            "type": "object",
+            "properties": {
+              "orig": {
+                "type": "object",
+                "properties": {
+                  "kty": {
+                    "type": "string",
+                    "example": "EC"
+                  },
+                  "crv": {
+                    "type": "string",
+                    "example": "P-256"
+                  },
+                  "x": {
+                    "type": "string",
+                    "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+                  },
+                  "y": {
+                    "type": "string",
+                    "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+                  },
+                  "alg": {
+                    "type": "string",
+                    "example": "ES256"
+                  }
+                }
+              },
+              "dest": {
+                "type": "object",
+                "properties": {
+                  "kty": {
+                    "type": "string",
+                    "example": "EC"
+                  },
+                  "crv": {
+                    "type": "string",
+                    "example": "P-256"
+                  },
+                  "x": {
+                    "type": "string",
+                    "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
+                  },
+                  "y": {
+                    "type": "string",
+                    "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
+                  },
+                  "alg": {
+                    "type": "string",
+                    "example": "ES256"
+                  }
+                }
+              },
+              "encAlg": {
+                "type": "string",
+                "example": "A256GCM"
+              },
+              "signingAlg": {
+                "type": "string",
+                "example": "ES256"
+              },
+              "hashAlg": {
+                "type": "string",
+                "example": "SHA-256"
+              },
+              "ledgerContractAddress": {
+                "type": "string",
+                "example": "0x8d407a1722633bdd1dcf221474be7a44c05d7c2f"
+              },
+              "ledgerSignerAddress": {
+                "type": "string",
+                "example": "0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903"
+              },
+              "pooToPorDelay": {
+                "type": "number",
+                "example": 10000
+              },
+              "pooToPopDelay": {
+                "type": "number",
+                "example": 20000
+              },
+              "pooToSecretDelay": {
+                "type": "number",
+                "example": 150000
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "prerequisiteInfo"
+        }
+      },
+      "dataExchangeAgreementRes": {
+        "type": "object",
+        "properties": {
+          "orig": {
             "type": "object",
             "properties": {
               "kty": {
@@ -801,7 +934,7 @@
               }
             }
           },
-          "providerPublicKey": {
+          "dest": {
             "type": "object",
             "properties": {
               "kty": {
@@ -825,18 +958,6 @@
                 "example": "ES256"
               }
             }
-          }
-        },
-        "xml": {
-          "name": "dataExchangeAgreementReq"
-        }
-      },
-      "dataExchangeAgreementRes": {
-        "type": "object",
-        "properties": {
-          "orig": {
-            "type": "string",
-            "example": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}"
           },
           "encAlg": {
             "type": "string",
@@ -869,10 +990,6 @@
           "pooToSecretDelay": {
             "type": "number",
             "example": 150000
-          },
-          "dest": {
-            "type": "string",
-            "example": "{\"kty\":\"EC\",\"crv\":\"P-256\",\"x\":\"342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY\",\"y\":\"KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk\",\"alg\":\"ES256\"}"
           }
         },
         "xml": {
@@ -942,34 +1059,6 @@
         },
         "xml": {
           "name": "providerPublicKeyReq"
-        }
-      },
-      "publicKey": {
-        "type": "object",
-        "properties": {
-          "kty": {
-            "type": "string",
-            "example": "EC"
-          },
-          "crv": {
-            "type": "string",
-            "example": "P-256"
-          },
-          "x": {
-            "type": "string",
-            "example": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY"
-          },
-          "y": {
-            "type": "string",
-            "example": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk"
-          },
-          "alg": {
-            "type": "string",
-            "example": "ES256"
-          }
-        },
-        "xml": {
-          "name": "publicKey"
         }
       },
       "payMarketFeeReq": {
@@ -1288,13 +1377,25 @@
       "verificationRes": {
         "type": "object",
         "properties": {
-          "resolution": {
+          "signedResolution": {
             "type": "string",
-            "example": "completed | not completed"
+            "example": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJyZXNvbHV0aW9uIiwiZGF0YUV4Y2hhbmdlSWQiOiJrMG1ielluNTRQY2pKX3JDRTZ4aDFUMVFGMWQ3MmZ2ZERnZXV0ak81bE5vIiwiaWF0IjoxNjY3MzE5MTA1LCJpc3MiOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJkXCI6XCItQzR2b2VwekhOcGluRWtESzZMZEMwcGR2cWhvaHBaNjBqbzNxajlNVWVZXCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCI0ZDN1OWpkNUNoOG9PRjNGQXFILUVEcHpBN1ZoWHhzY1Z3YkY1eUEtRHM4XCIsXCJ5XCI6XCJTV3FwWnlRMUdSRWJMcTFvVXBPLTh6RkNxNWQ2NE9oQ3ozc1RHbmJsaHpZXCJ9Iiwic3ViIjoie1wiYWxnXCI6XCJFUzI1NlwiLFwiY3J2XCI6XCJQLTI1NlwiLFwia3R5XCI6XCJFQ1wiLFwieFwiOlwiMzQydFRvWnJ2ajY0Sy0wdlB1cTlCNXQ4Qngza2pPbFZXNTc0UTJ2by16WVwiLFwieVwiOlwiS3R1a0VrLTVaU3ZKem5vV1lsOTlsNng4Q2J4Yk1EWUo3ZkJid1U4RG5wa1wifSIsInJlc29sdXRpb24iOiJjb21wbGV0ZWQiLCJ0eXBlIjoidmVyaWZpY2F0aW9uIn0.CHLmAuMGNLzSowhB3QPTuxmbiUgLD99w_eAzu1IWhc4FOmXbvWMzTYHMKn-pOoeH3PHu7vV8ffPyZXJJRgde1w"
           }
         },
         "xml": {
           "name": "verificationRes"
+        }
+      },
+      "signedResolution": {
+        "type": "object",
+        "properties": {
+          "signedResolution": {
+            "type": "string",
+            "example": "eyJhbGciOiJFUzI1NiJ9.eyJwcm9vZlR5cGUiOiJyZXNvbHV0aW9uIiwiZGF0YUV4Y2hhbmdlSWQiOiIyZU9EOXBYWTAxZHliZjVpWXktRG9qeWZCN1VqWDVFZHVXeEptbFB2QVVjIiwiaWF0IjoxNjY2MjY2MDE1LCJpc3MiOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJkXCI6XCItQzR2b2VwekhOcGluRWtESzZMZEMwcGR2cWhvaHBaNjBqbzNxajlNVWVZXCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCI0ZDN1OWpkNUNoOG9PRjNGQXFILUVEcHpBN1ZoWHhzY1Z3YkY1eUEtRHM4XCIsXCJ5XCI6XCJTV3FwWnlRMUdSRWJMcTFvVXBPLTh6RkNxNWQ2NE9oQ3ozc1RHbmJsaHpZXCJ9Iiwic3ViIjoie1wiYWxnXCI6XCJFUzI1NlwiLFwiY3J2XCI6XCJQLTI1NlwiLFwia3R5XCI6XCJFQ1wiLFwieFwiOlwiMzQydFRvWnJ2ajY0Sy0wdlB1cTlCNXQ4Qngza2pPbFZXNTc0UTJ2by16WVwiLFwieVwiOlwiS3R1a0VrLTVaU3ZKem5vV1lsOTlsNng4Q2J4Yk1EWUo3ZkJid1U4RG5wa1wifSIsInJlc29sdXRpb24iOiJjb21wbGV0ZWQiLCJ0eXBlIjoidmVyaWZpY2F0aW9uIn0.Z2MtEgB4IRJrle8BZ8Lk2YXeBqK5utJhuSJ-IVkIbeETqlgIS-axHRCWgyF2B2nZQzaELDWUQyS0iqBoVsG22g"
+          }
+        },
+        "xml": {
+          "name": "signedResolution"
         }
       },
       "listOfVerificationRequestsRes": {

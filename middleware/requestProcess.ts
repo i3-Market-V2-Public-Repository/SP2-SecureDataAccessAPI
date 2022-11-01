@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { BatchRequest, DataExchangeAgreementReq, FeeRequest, ListOfVerificationRequest, PopRequest, RegdsRequest, VerificationRequest } from '../types/openapi';
+import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, Prerequisite, RegdsRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -137,17 +137,32 @@ export function regdsReqProcessing(req: Request, res: Response, next: NextFuncti
   next()
 }
 
-export function dataExchangeAgreementReqProcessing(req: Request, res: Response, next: NextFunction) {
+export function dataExchangeAgreementInfoProcessing(req: Request, res: Response, next: NextFunction) {
 
-  const input: DataExchangeAgreementReq = req.body
+  const input: Prerequisite = req.body
 
   const rules = {
-    'consumerPublicKey': 'required|object',
-    'providerPublicKey': 'required|object'
+    'agreementId': 'required|integer',
+    'providerPrivateKey': 'required|object',
+    'dataExchangeAgreement.orig': 'required|object',
+    'dataExchangeAgreement.dest': 'required|object',
+    'dataExchangeAgreement.encAlg': 'required|in:A128GCM,A256GCM',
+    'dataExchangeAgreement.signingAlg': 'required|in:ES256,ES384,ES512',
+    'dataExchangeAgreement.hashAlg': 'required|in:SHA-256,SHA-384,SHA-512',
+    'dataExchangeAgreement.ledgerContractAddress': 'required|string',
+    'dataExchangeAgreement.ledgerSignerAddress': 'required|string',
+    'dataExchangeAgreement.pooToPorDelay': 'required|integer',
+    'dataExchangeAgreement.pooToPopDelay': 'required|integer',
+    'dataExchangeAgreement.pooToSecretDelay': 'required|integer'
   };
 
+  const msg = {
+    'dataExchangeAgreement.encAlg.in': 'Must be A128GCM or A256GCM',
+    'dataExchangeAgreement.signingAlg.in': 'Must be ES256, ES384 or ES512',
+    'dataExchangeAgreement.hashAlg.in': 'Must be SHA-256, SHA-384 or SHA-512'
+  }
 
-  res.locals.reqParams = { input, rules }
+  res.locals.reqParams = { input, rules, msg }
 
   next()
 }

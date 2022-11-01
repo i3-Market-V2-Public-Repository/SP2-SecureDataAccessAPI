@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
-import { BatchRequest, Agreement, BatchDaaResponse, JsonMapOfData, Mode } from '../types/openapi';
-import { getAgreement, getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
+import { BatchRequest, BatchDaaResponse, JsonMapOfData, Mode } from '../types/openapi';
+import { getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
@@ -36,8 +36,9 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         const providerDltSigningKeyHex = env.providerDltSigningKeyHex
 
         const batchReqParams: BatchRequest = res.locals.reqParams.input
-        const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
+        //const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
 
+        const agreementId = batchReqParams.agreementId
         const signature = batchReqParams.signature
         const blockId = batchReqParams.blockId
         const blockAck = batchReqParams.blockAck
@@ -49,24 +50,28 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         const resourceMapPath = `./data/${data}.json`
         const resourcePath = `./data/${data}`
 
-        const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey FROM DataExchangeAgreements WHERE ConsumerPublicKey = ? AND ProviderPublicKey = ?'
-        const params = [agreement.consumerPublicKey, agreement.providerPublicKey]
+        const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
+        const params = [agreementId]
 
         const db = await openDb()
 
         const selectResult = await db.get(select, params)
-        console.log(selectResult)
+        
         if (!selectResult) {
             const error = {
                 // #swagger.responses[404]
                 status: 404,
                 path: 'batch.controller.poo',
                 name: 'Not found',
-                message: 'Cant find dataExchangeAgreement with the Consumer and Provider public key that match the ones from agreement provided.'
+                message: `Cant find dataExchangeAgreement for agreementId ${agreementId}.`
             }
             throw new HttpError(error)
-        }
+        } 
+
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
+        dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
+        dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
+
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
         await db.close()
 
@@ -109,7 +114,7 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
                 const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
 
-                npsession.set(decoded.sub!, batchReqParams.agreementId, npProvider, mode)
+                npsession.set(decoded.sub!, agreementId, npProvider, mode)
 
                 /* #swagger.responses[200 - Block Response] = { schema: { $ref: "#/components/schemas/batchRes" }} */
                 res.send(batchDaaResponse)

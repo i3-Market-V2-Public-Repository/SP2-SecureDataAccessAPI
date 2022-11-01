@@ -15,8 +15,8 @@ export async function createTables(db: Database<sqlite3.Database, sqlite3.Statem
     const tables: string[] = ['CREATE TABLE IF NOT EXISTS DataSpaceUsers(User TEXT PRIMARY KEY, Password TEXT);',
                               'CREATE TABLE IF NOT EXISTS StreamSubscribers(ConsumerDid TEXT, DataSourceUid TEXT, AgreementId TEXT, Timestamp TEXT, SubId TEXT, AmmountOfDataReceived TEXT, PRIMARY KEY (ConsumerDid, DataSourceUid));',
                               'CREATE TABLE IF NOT EXISTS DataSources(Uid TEXT PRIMARY KEY, Description TEXT, Url TEXT, Timestamp TEXT);',
-                              'CREATE TABLE IF NOT EXISTS Accounting(Date INTEGER, ConsumerId TEXT, ExchangeId TEXT, AgreementId TEXT, Poo TEXT, Por TEXT, Pop TEXT PRIMARY KEY, VerificationRequest TEXT, Mode TEXT);',
-                              'CREATE TABLE IF NOT EXISTS DataExchangeAgreements(ConsumerPublicKey TEXT, ProviderPublicKey TEXT, ProviderPrivateKey TEXT, DataExchangeAgreement TEXT PRIMARY KEY);',
+                              'CREATE TABLE IF NOT EXISTS Accounting(Date INTEGER, ConsumerId TEXT, ExchangeId TEXT, AgreementId INTEGER, Poo TEXT, Por TEXT, Pop TEXT PRIMARY KEY, VerificationRequest TEXT, Mode TEXT);',
+                              'CREATE TABLE IF NOT EXISTS DataExchangeAgreements(AgreementId INTEGER PRIMARY KEY, ConsumerPublicKey TEXT, ProviderPublicKey TEXT, ProviderPrivateKey TEXT, DataExchangeAgreement TEXT);',
     ];
     
     tables.forEach(query => {

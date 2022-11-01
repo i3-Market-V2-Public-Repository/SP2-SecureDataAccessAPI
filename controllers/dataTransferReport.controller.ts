@@ -34,7 +34,7 @@ export async function nrpCompletenessCheck(req: Request, res: Response, next: Ne
         }
 
         /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/verificationRes" }} */
-        res.send({ resolution: payload.resolution })
+        res.send({ signedResolution: signedResolution })
     } catch (error) {
         next(error)
     }

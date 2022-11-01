@@ -10,6 +10,7 @@ import dataTransferReportRouterPromise from './routes/dataTransferReport.router'
 import oidcAuthRouterPromise from './routes/oidcAuth.router';
 import streamAuthRouterPromise from './routes/streamAuth.router';
 import streamRouterPromise from './routes/stream.router';
+import openapiRouterPromise from './routes/openapi.router';
 import config from './config/config';
 import passportPromise from './middleware/passport';
 import mqttinit from './mqtt/mqttInit';
@@ -42,7 +43,8 @@ const main = async function (): Promise<void> {
   await batchRoutesPromise(),
   await streamAuthRouterPromise(),
   await agreementRoutesPromise(),
-  await dataTransferReportRouterPromise()
+  await dataTransferReportRouterPromise(),
+  await openapiRouterPromise()
   )
   app.use(errorMiddleware)
 
