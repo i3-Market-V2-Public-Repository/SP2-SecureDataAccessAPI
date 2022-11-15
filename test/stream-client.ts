@@ -37,20 +37,20 @@ const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = {
     // The orig (data provider) address in the DLT (hexadecimal).
     ledgerSignerAddress: '0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903',
     // Maximum acceptable delay between the issuance of the proof of origing (PoO) by the orig and the reception of the proof of reception (PoR) by the orig
-    pooToPorDelay: 10000,
+    pooToPorDelay: 100000,
     // Maximum acceptable delay between the issuance of the proof of origing (PoP) by the orig and the reception of the proof of publication (PoR) by the dest
-    pooToPopDelay: 20000,
+    pooToPopDelay: 200000,
     // If the dest (data consumer) does not receive the PoP, it could still get the decryption secret from the DLT. This defines the maximum acceptable delay between the issuance of the proof of origing (PoP) by the orig and the publication (block time) of the secret on the blockchain.
-    pooToSecretDelay: 150000
+    pooToSecretDelay: 1500000
 }
 
 const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
     rpcProviderUrl: 'http://95.211.3.244:8545'
 }
 
-const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2NzQwNTMzOCwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjY3MzE4OTM4fQ.S9iJJFhbr8kH9o9Tu8Sv-T3S8xlcfVYjpH2siUOifb4'
+const bearerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2ODI1MTU3NCwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjY4MTY1MTc0fQ.Jy1JlL9LGQ1_jAjNC3kiR0OnjQLbry8avmqUOKB412U'
 const dataSourceUid = '123abc'
-const agreementId = 1
+const agreementId = 2
 
 async function streamSubscribe() {
     try {
@@ -65,12 +65,12 @@ async function streamSubscribe() {
             password: 'something', 
             clientId: `${consumerId}`,
             clean: false
-        };
-    
-        let mqtt_client = mqtt.connect('mqtt://localhost:1884', options)
+        }; 
+        //mqtt://95.211.3.249:1884  mqtt://localhost:1884
+        let mqtt_client = mqtt.connect('mqtt://95.211.3.249:1884', options)
 
         mqtt_client.on('connect', function () {
-            mqtt_client.subscribe(`/to/${consumerId}/${dataSourceUid}/${agreementId}`)
+            mqtt_client.subscribe(`/to/${consumerId}/${dataSourceUid}/${agreementId}`, {qos:2})
         });
 
         mqtt_client.on('message', async(topic, message) => {
@@ -79,7 +79,8 @@ async function streamSubscribe() {
 
             if(message.toString().startsWith('{"jws"')){
 
-                const pop: nonRepudiationLibrary.StoredProof<nonRepudiationLibrary.PoOPayload> = JSON.parse(message.toString())
+                console.log(message.toString())
+                const pop: nonRepudiationLibrary.StoredProof<nonRepudiationLibrary.PoPPayload> = JSON.parse(message.toString())
                 await npConsumer.verifyPoP(pop.jws)
 
                 const fileName = pop.payload.exchange.cipherblockDgst
@@ -95,12 +96,13 @@ async function streamSubscribe() {
                 stream.end()
 
             } else {
+                console.log(message.toString())
                 const content: StreamResponse = JSON.parse(message.toString())
 
                 await npConsumer.verifyPoO(content.poo, content.cipherBlock)
 
                 const por = await npConsumer.generatePoR()
-                mqtt_client.publish(`/from/${consumerId}/${dataSourceUid}/${agreementId}`, JSON.stringify(por.jws))
+                mqtt_client.publish(`/from/${consumerId}/${dataSourceUid}/${agreementId}`, JSON.stringify(por.jws), {qos:2})
             }
           })
         console.log(`Mqtt client with id ${consumerId} subscribed to datasource ${dataSourceUid}`)

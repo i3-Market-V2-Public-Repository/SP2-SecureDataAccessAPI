@@ -59,7 +59,7 @@ const main = async function (): Promise<void> {
   server.listen(port, addr)
 
   server.on('listening', function (): void {
-    console.log(`Listening on http://localhost:${config.server.port}`)
+    console.log(`Listening on port ${config.server.port}`)
     console.log(`Listening on public ${config.server.publicUri}`)
 
   })

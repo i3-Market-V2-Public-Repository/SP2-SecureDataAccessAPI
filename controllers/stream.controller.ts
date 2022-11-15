@@ -67,7 +67,7 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 }
 
 export async function newData(req: Request, res: Response, next: NextFunction) {
-    try {
+    try {       
 
         // #swagger.tags = ['StreamController']
         // #swagger.description = 'Endpoint for the datasource to send data to. The data will be forwarded to the mqtt broker.'
@@ -122,7 +122,7 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
 
             const streamDaaResponse: StreamResponse = { poo: poo.jws, cipherBlock: npProvider.block.jwe }
 
-            client.publish(`/to/${row.ConsumerDid}/${row.DataSourceUid}/${row.AgreementId}`, JSON.stringify(streamDaaResponse))
+            client.publish(`/to/${row.ConsumerDid}/${row.DataSourceUid}/${row.AgreementId}`, JSON.stringify(streamDaaResponse), {qos:2})
 
             npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, mode)
 

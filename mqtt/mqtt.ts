@@ -54,7 +54,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
 
         if (topic.startsWith("$SYS/broker/log/M/subscribe") && params.topicSubscribedTo.startsWith(`/to/${params.consumerDid}`)) {
 
-            mqttClient.subscribe(`/from/${params.consumerDid}/${params.dataSourceUid}/${params.agreementId}`)
+            mqttClient.subscribe(`/from/${params.consumerDid}/${params.dataSourceUid}/${params.agreementId}`, {qos:2})
 
             const hash = crypto.createHash('sha256').update(params.consumerDid + params.dataSourceUid).digest('hex')
             const subId = hash.substring(0, 10)
@@ -76,13 +76,14 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             await db.close()
 
             startStream(params.dataSourceUid)
+
         }
 
         if (topic.startsWith("$SYS/broker/log/M/unsubscribe") && params.topicUnsubscribedTo.startsWith(`/to/${params.consumerDid}`)) {
 
             const db = await openDb()
 
-            const remove = 'DELETE FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
+            const remove = 'DELETE * FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
             const removeParams = [params.consumerDid, params.dataSourceUid]
 
             await db.run(remove, removeParams)
@@ -107,7 +108,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             await npProvider.verifyPoR(por)
             const pop = await npProvider.generatePoP()
             const poo = npProvider.block.poo
-    
+            
             const verificationRequest = await npProvider.generateVerificationRequest()
     
             const consumerId = params.consumerDid
@@ -122,14 +123,14 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
     
             const db = await openDb()
             const selectResult = await db.all(select, selectParams)
-    
+
             if (selectResult.length === 0) {
                 await db.run(insert, insertParams)
             }
-    
-            npsession.set(consumerId, agreementId, npProvider, mode)
 
-            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop))
+            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop), {qos:2})
+
+            npsession.set(consumerId, agreementId, npProvider, mode)
         }
 
     })
@@ -151,11 +152,16 @@ async function startStream(dataSourceUid: string) {
         selectResult.forEach(async (row: DataSourcesRow) => {
 
             const client = new DigestFetch(env.dataSpaceUser, env.dataSpacePassword)
-            await client.fetch(`${row.Url}/subscribe`, {
-                method: 'GET',
-            })
+            try {
+                await client.fetch(`${row.Url}/subscribe`, {
+                    method: 'GET',
+                })
+    
+                console.log(`Data source ${row.Uid} instructed to send data now...`)
+            } catch (error) {
+                console.log(`Cant reach ${row.Url} for data source ${row.Uid}`)
+            }
 
-            console.log(`Data source ${row.Uid} instructed to send data now...`)
         });
     }
 }
@@ -179,10 +185,16 @@ async function endStream(dataSourceUid: string) {
         if (selectResult !== undefined) {
 
             const client = new DigestFetch(env.dataSpaceUser, env.dataSpacePassword)
-            await client.fetch(`${selectResult.Url}/unsubscribe`, {
-                method: 'GET',
-            })
-            console.log(`Data source ${selectResult.Uid} has no more subscribers to send data to...`)
+
+            try {
+                await client.fetch(`${selectResult.Url}/unsubscribe`, {
+                    method: 'GET',
+                })
+                console.log(`Data source ${selectResult.Uid} has no more subscribers to send data to...`)
+            } catch (error) {
+                console.log(`Cant reach ${selectResult.Url} for data source ${selectResult.Uid}`)
+            }
+            
         }
     }
     await db.close()
