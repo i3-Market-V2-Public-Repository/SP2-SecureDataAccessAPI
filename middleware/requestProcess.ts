@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { BatchRequest, FeeRequest, ListOfVerificationRequest, PopRequest, Prerequisite, RegdsRequest, VerificationRequest } from '../types/openapi';
+import { BatchRequest, FeeRequest, FeeTxRequest, ListOfVerificationRequest, PopRequest, Prerequisite, RegdsRequest, VerificationRequest } from '../types/openapi';
 import { DataExchangeAgreement } from '@i3m/non-repudiation-library';
 
 
@@ -72,6 +72,23 @@ export function feeReqProcessing(req: Request, res: Response, next: NextFunction
   next()
 }
 
+export function feeTxReqProcessing(req: Request, res: Response, next: NextFunction) {
+
+  const input: FeeTxRequest = {
+    agreementId: req.params.agreementId,
+    serializedTx: req.body.serializedTx
+  };
+
+  const rules = {
+    'agreementId': 'required|string',
+    'serializedTx': 'required|string',
+  };
+
+  res.locals.reqParams = { input, rules }
+
+  next()
+}
+
 export function verificationReqProcessing(req: Request, res: Response, next: NextFunction) {
 
   const input: VerificationRequest = {
@@ -122,7 +139,7 @@ export function regdsReqProcessing(req: Request, res: Response, next: NextFuncti
   const input: RegdsRequest = req.body
 
   const rules = {
-    'uid': 'required|string',
+    'offeringId': 'required|string',
     'description': 'required|string',
     'url': 'required|string',
     'action': 'required|in:register,unregister'

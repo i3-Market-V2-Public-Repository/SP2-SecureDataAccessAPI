@@ -1,15 +1,16 @@
 import { env } from "../config/env";
-import { JsonMapOfData, PaymentBody, ResponseData, TransactionObject } from "../types/openapi";
+import { AgreementState, ConnectorResponse, JsonMapOfData, PaymentBody, ResponseData, SerializedTxObj, TransactionObject } from "../types/openapi";
 import { JwtClaims } from '../types/openapi';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import config from '../config/config';
 import 'isomorphic-fetch';
+import { Agreement } from "../types/agreement";
 
 export async function retrieveRawPaymentTransaction(payment: PaymentBody) {
 
-    const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/payment`, {
+    const request = await fetch(`${env.tokenizerUrl}/api/v1/operations/fee-payment`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -24,18 +25,48 @@ export async function retrieveRawPaymentTransaction(payment: PaymentBody) {
     return rawTransaction
 }
 
+export async function deployRawPaymentTx(serializedTxObj: SerializedTxObj) {
+
+    const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/deploy-signed-transaction`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(serializedTxObj)
+    });
+    const transactionObject: TransactionObject = await request.json();
+    console.log(transactionObject)
+
+    return transactionObject
+}
+
 export async function retrievePrice(offeringId: string) {
 
-    const request = await fetch(`${env.backplaneUrl}/semantic-engine/api/registration/offering/${offeringId}/offeringId`, {
+    const request = await fetch(`${env.backplaneUrl}/semantic-engine/api/registration/contract-parameter/${offeringId}/offeringId`, {
         method: 'GET',
         headers: {
             'Accept': '*/*'
         },
     });
     const offering = await request.json();
+    console.log(offering)
     const price = offering.hasPricingModel.basicPrice
 
     return price
+}
+
+export async function getDataBlock(dataSourceUrl: string, filename: string, blockId: string) {
+
+    const request = await fetch(`${dataSourceUrl}/batch/getDataBlock/${filename}/${blockId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': '*/*'
+        },
+    });
+    const response: ConnectorResponse = await request.json();
+
+    return response
 }
 
 export async function fetchSignedResolution(verificationRequest: string) {
@@ -63,9 +94,22 @@ export async function getAgreement(agreementId: number) {
             'Accept': '*/*'
         },
     });
-    const agreement = await request.json();
+    const agreement: Agreement = await request.json();
 
     return agreement
+}
+
+export async function getAgreementState(agreementId: number) {
+
+    const request = await fetch(`${env.smartContractManager}/get_state/${agreementId}`, {
+        method: 'GET',
+        headers: {
+            'Accept': '*/*'
+        },
+    });
+    const agreementState: AgreementState = await request.json();
+
+    return agreementState
 }
 
 export function getTimestamp() {
@@ -182,22 +226,6 @@ export async function responseData(blockId: string, jsonMapOfData: JsonMapOfData
         });
     });
     return promise;
-}
-
-export async function deployRawPaymentTransaction(signature: string) {
-
-    const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/deploy-signed-transaction`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ serializedTx: signature })
-    });
-    const transactionObject: TransactionObject = await request.json();
-    console.log(transactionObject)
-
-    return transactionObject
 }
 
 export function _createJwt(claims: JwtClaims): string {

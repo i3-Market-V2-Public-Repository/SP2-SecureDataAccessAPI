@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
-import { BatchRequest, BatchDaaResponse, JsonMapOfData, Mode } from '../types/openapi';
-import { getTimestamp, checkFile, responseData, deployRawPaymentTransaction } from '../common/common';
+import { BatchRequest, BatchDaaResponse, Mode, ConnectorResponse } from '../types/openapi';
+import { getTimestamp, getAgreement, getAgreementState, getDataBlock } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
-import * as fs from 'fs';
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import npsession from '../session/np.session';
+
+const BJSON = require('buffer-json')
 
 async function poo(req: Request, res: Response, next: NextFunction) {
     try {
@@ -39,16 +40,12 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         //const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
 
         const agreementId = batchReqParams.agreementId
-        const signature = batchReqParams.signature
         const blockId = batchReqParams.blockId
         const blockAck = batchReqParams.blockAck
         const data = batchReqParams.data
 
         const bearerToken = req.header('authorization')?.replace("Bearer ", "")
         const decoded = jwtDecode<JwtPayload>(bearerToken!)
-
-        const resourceMapPath = `./data/${data}.json`
-        const resourcePath = `./data/${data}`
 
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
         const params = [agreementId]
@@ -68,74 +65,106 @@ async function poo(req: Request, res: Response, next: NextFunction) {
             throw new HttpError(error)
         } 
 
+        const agreementState = await getAgreementState(agreementId)
+
+        if (agreementState?.state !== 'active') {
+            if (agreementState.state === 'violated' || agreementState.state === 'terminated' ){
+                res.status(410).send({msg:`The agreement with agreementId ${agreementId} is in state ${agreementState.state}`})
+            } else {
+                const error = {
+                    // #swagger.responses[404]
+                    status: 500,
+                    path: 'batch.controller.poo',
+                    name: 'Internal server error',
+                    message: JSON.stringify(agreementState)
+                }
+                throw new HttpError(error)
+            }
+        }
+
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
         dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
         dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
 
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
-        await db.close()
 
-        if (fs.existsSync(resourcePath)) {
-            console.log('The resource exists')
-
-            if (blockId == 'null') {
-
-                const check = checkFile(resourceMapPath, resourcePath);
-                console.log('File checked')
-
+        let session: Mode = npsession.get(decoded.sub!)
+        
+        if (session === undefined || session.batch?.agreementId !== agreementId) {
+            const agreement = await getAgreement(agreementId)
+            session = {
+                batch: {
+                    agreementId: agreementId,
+                    agreement: agreement
+                    
+                }
             }
-            const map = fs.readFileSync(resourceMapPath, 'utf8');
-            const jsonMapOfData: JsonMapOfData = JSON.parse(map);
+        }
+        
+        const offeringId = session.batch?.agreement.dataOffering.dataOfferingId
 
-            if (blockId === 'null' && blockAck === 'null') {
+        const selectUrl = 'SELECT Url FROM DataSources WHERE OfferingId = ?'
+        const selectParams = [offeringId]
 
-                const index = Object.keys(jsonMapOfData.records[0])
-
-                const nextBlockId = index[0]
-                const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: nextBlockId, poo: "null", cipherBlock: "null" }
-
-                console.log(`Daa response is ${batchDaaResponse}`)
-
-                /* #swagger.responses[200 - First Block Response] = { schema: { $ref: "#/components/schemas/batchFirstBlockRes" }} */
-                res.send(batchDaaResponse)
-
-            } else if ((blockId != 'null' && blockAck == 'null') || (blockId != 'null' && blockAck != 'null')) {
-
-                const response = await responseData(blockId, jsonMapOfData, resourcePath);
-                const rawBufferData = response.data
-                const nextBlockId = response.nextBlockId
-
-                console.log('Buffer size: ' + rawBufferData.length)
-
-                const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
-
-                const poo = await npProvider.generatePoO()
-                const cipherBlock = npProvider.block.jwe
-
-                const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
-
-                npsession.set(decoded.sub!, agreementId, npProvider, mode)
-
-                /* #swagger.responses[200 - Block Response] = { schema: { $ref: "#/components/schemas/batchRes" }} */
-                res.send(batchDaaResponse)
-
-            } else if (blockId == 'null' && blockAck != 'null') {
-
-                const transactionObject = await deployRawPaymentTransaction(signature)
-                const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null", "transactionObject": transactionObject }
-
-                /* #swagger.responses[200 - Last Block Response] = { schema: { $ref: "#/components/schemas/batchLastBlockRes" }} */
-                res.send(batchDaaResponse);
-            }
-        } else {
-            // #swagger.responses[404]
+        const selectResults = await db.get(selectUrl, selectParams)
+        
+        if (!selectResults) {
             const error = {
+                // #swagger.responses[404]
                 status: 404,
                 path: 'batch.controller.poo',
                 name: 'Not found',
-                message: `Cant find ${data}.`
+                message: `Cant find data source url for offeringId ${offeringId}.`
             }
             throw new HttpError(error)
+        } 
+
+        await db.close()
+
+        console.log(selectResults)
+        const dataSourceUrl = selectResults.Url
+        console.log(dataSourceUrl)
+        if (blockId === 'null' && blockAck === 'null') {
+
+            const getBlock = await getDataBlock(dataSourceUrl, data, blockId)
+            const nextBlockId = getBlock.nextBlockId
+
+            const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: nextBlockId, poo: "null", cipherBlock: "null" }
+
+            console.log(`Daa response is ${batchDaaResponse}`)
+
+            /* #swagger.responses[200 - First Block Response] = { schema: { $ref: "#/components/schemas/batchFirstBlockRes" }} */
+            res.send(batchDaaResponse)
+
+        } else if ((blockId != 'null' && blockAck == 'null') || (blockId != 'null' && blockAck != 'null')) {
+            
+            const getBlock = await getDataBlock(dataSourceUrl, data, blockId)
+            
+            const nextBlockId = getBlock.nextBlockId
+            const responseToString = BJSON.stringify(getBlock)
+            const responseToBuffer: ConnectorResponse = BJSON.parse(responseToString)
+            const rawBufferData = responseToBuffer.data
+
+            const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
+
+            const poo = await npProvider.generatePoO()
+            const cipherBlock = npProvider.block.jwe
+
+            const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
+
+            const agreement = session.batch!.agreement
+
+            npsession.set(decoded.sub!, agreementId, npProvider, agreement, mode)
+
+            /* #swagger.responses[200 - Block Response] = { schema: { $ref: "#/components/schemas/batchRes" }} */
+            res.send(batchDaaResponse)
+
+        } else if (blockId == 'null' && blockAck != 'null') {
+
+            const batchDaaResponse: BatchDaaResponse = { blockId: "null", nextBlockId: "null", poo: "null", cipherBlock: "null" }
+
+            /* #swagger.responses[200 - Last Block Response] = { schema: { $ref: "#/components/schemas/batchLastBlockRes" }} */
+            res.send(batchDaaResponse);
         }
     } catch (error) {
         next(error)
@@ -168,7 +197,9 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         const session: Mode = npsession.get(decoded.sub!)
 
-        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider
+        const agreement = session.batch!.agreement
+
+        const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider!
         await npProvider.verifyPoR(por)
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
@@ -192,7 +223,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
             await db.run(insert, insertParams)
         }
 
-        npsession.set(consumerId, agreementId, npProvider, mode)
+        npsession.set(consumerId, agreementId, npProvider, agreement, mode)
 
         /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/popRes" }} */
         res.send({pop: pop.jws})

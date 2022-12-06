@@ -1,8 +1,8 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { Request, NextFunction, Response } from 'express';
-import { getTimestamp } from '../common/common';
+import { getAgreement, getAgreementState, getTimestamp } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
-import { StreamResponse, StreamSubscribersRow } from '../types/openapi';
+import { Mode, StreamResponse, StreamSubscribersRow } from '../types/openapi';
 import { env } from '../config/env';
 import mqttinit from '../mqtt/mqttInit';
 import npsession from '../session/np.session';
@@ -25,7 +25,7 @@ export async function registerDataSource(req: Request, res: Response, next: Next
         } 
         */
 
-        const uid = req.body.uid
+        const offeringId = req.body.offeringId
         const description = req.body.description
         const url = req.body.url
         const action = req.body.action
@@ -34,13 +34,13 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
         const db = await openDb()
 
-        const insert = 'INSERT INTO DataSources(Uid, Description, Url, Timestamp) VALUES (?, ?, ?, ?)'
-        const select = 'SELECT * FROM DataSources WHERE Uid=?'
-        const unregister = 'DELETE FROM DataSources WHERE Uid=?'
+        const insert = 'INSERT INTO DataSources(OfferingId, Description, Url, Timestamp) VALUES (?, ?, ?, ?)'
+        const select = 'SELECT * FROM DataSources WHERE OfferingId=?'
+        const unregister = 'DELETE FROM DataSources WHERE OfferingId=?'
 
-        const selectParams = [uid]
-        const deregisterParams = [uid]
-        const insertParams = [uid, description, url, timestamp]
+        const selectParams = [offeringId]
+        const deregisterParams = [offeringId]
+        const insertParams = [offeringId, description, url, timestamp]
 
         if (action === 'register') {
 
@@ -52,7 +52,7 @@ export async function registerDataSource(req: Request, res: Response, next: Next
 
                 res.status(200).send('OK')
             } else {
-                res.send({ msg: `Data source with uid ${uid} already registered` })
+                res.send({ msg: `Data source with offeringId ${offeringId} already registered` })
             }
 
         }
@@ -85,7 +85,7 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
         const mode = 'stream'
 
         const data = req.body
-        const uid = req.params.uid
+        const offeringId = req.params.offeringId
 
         const client = mqttinit.get('client')
 
@@ -94,12 +94,10 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
 
         const db = await openDb()
 
-        const select = 'SELECT * FROM StreamSubscribers WHERE DataSourceUid=?'
-        const selectParams = [uid]
+        const select = 'SELECT * FROM StreamSubscribers WHERE OfferingId=?'
+        const selectParams = [offeringId]
 
         const selectResult = await db.all(select, selectParams)
-
-        console.log(selectResult) //to delete
 
         selectResult.forEach(async (row: StreamSubscribersRow) => {
 
@@ -110,32 +108,57 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
             const selectParams = [agreementId]
 
             const selectResult = await db.get(select, selectParams)
+            
+            if(!selectResult) {
+                client.publish(`/to/${row.ConsumerDid}/${row.OfferingId}/${row.AgreementId}`, `ErrorMessage: Cant find dataExchangeAgreement for agreementId ${agreementId}...`, {qos:2})
+            } else {
 
-            const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
-            dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
-            dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
+                let session: Mode = npsession.get(row.ConsumerDid)
+        
+                if (session === undefined || session.stream?.agreementId !== agreementId) {
+                    const agreement = await getAgreement(agreementId)
+                    session = {
+                        stream: {
+                            agreementId: agreementId,
+                            agreement: agreement
+                    
+                        }
+                    }
+                }
+            
+                const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
+                dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
+                dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
 
-            const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
+                const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 
-            const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, env.providerDltSigningKeyHex)
-            const poo = await npProvider.generatePoO()
+                const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, env.providerDltSigningKeyHex)
+                const poo = await npProvider.generatePoO()
 
-            const streamDaaResponse: StreamResponse = { poo: poo.jws, cipherBlock: npProvider.block.jwe }
+                const streamDaaResponse: StreamResponse = { poo: poo.jws, cipherBlock: npProvider.block.jwe }
 
-            client.publish(`/to/${row.ConsumerDid}/${row.DataSourceUid}/${row.AgreementId}`, JSON.stringify(streamDaaResponse), {qos:2})
+                const agreementState = await getAgreementState(agreementId)
+            
+                if (agreementState.state === 'active') {
+                    client.publish(`/to/${row.ConsumerDid}/${row.OfferingId}/${row.AgreementId}`, JSON.stringify(streamDaaResponse), {qos:2})
+                } else {
+                    client.publish(`/to/${row.ConsumerDid}/${row.OfferingId}/${row.AgreementId}`, `ErrorMessage: Agreement with agreementId ${agreementId} is not active...`, {qos:2})
+                }
+            
+                const agreement = session.stream?.agreement!
+                npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, agreement, mode)
 
-            npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, mode)
+                const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
 
-            const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
+                const update = 'UPDATE StreamSubscribers SET AmmountOfDataReceived=? WHERE SubId=?'
+                const updateParams = [ammountOfDataReceived, row.SubId]
 
-            const update = 'UPDATE StreamSubscribers SET AmmountOfDataReceived=? WHERE SubId=?'
-            const updateParams = [ammountOfDataReceived, row.SubId]
-
-            await db.run(update, updateParams)
-        })
-
-        res.send({ msg: 'Data sent to broker' })
-    } catch (error) {
-        next(error)
-    }
+                await db.run(update, updateParams)
+                await db.close()
+                }
+            })
+            res.send({ msg: 'Data sent to broker' })
+        } catch (error) {
+            next(error)
+        }
 }

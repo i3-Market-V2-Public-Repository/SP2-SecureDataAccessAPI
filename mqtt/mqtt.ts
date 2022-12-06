@@ -14,7 +14,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
         messageSplit: [],
         topicSplit: [],
         consumerDid: '',
-        dataSourceUid: '',
+        offeringId: '',
         timestamp: '',
         topicSubscribedTo: '',
         topicUnsubscribedTo: '',
@@ -38,7 +38,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             params.timestamp = params.messageSplit[0]
             params.topicSplit = params.messageSplit[3].split('/')
             params.consumerDid = params.topicSplit[2]
-            params.dataSourceUid = params.topicSplit[3]
+            params.offeringId = params.topicSplit[3]
             params.agreementId = params.topicSplit[4]
         }
 
@@ -48,24 +48,24 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             params.topicUnsubscribedTo = params.messageSplit[2]
             params.topicSplit = params.messageSplit[2].split('/')
             params.consumerDid = params.topicSplit[2]
-            params.dataSourceUid = params.topicSplit[3]
+            params.offeringId = params.topicSplit[3]
             params.agreementId = params.topicSplit[4]
         }
 
         if (topic.startsWith("$SYS/broker/log/M/subscribe") && params.topicSubscribedTo.startsWith(`/to/${params.consumerDid}`)) {
 
-            mqttClient.subscribe(`/from/${params.consumerDid}/${params.dataSourceUid}/${params.agreementId}`, {qos:2})
+            mqttClient.subscribe(`/from/${params.consumerDid}/${params.offeringId}/${params.agreementId}`, {qos:2})
 
-            const hash = crypto.createHash('sha256').update(params.consumerDid + params.dataSourceUid).digest('hex')
+            const hash = crypto.createHash('sha256').update(params.consumerDid + params.offeringId).digest('hex')
             const subId = hash.substring(0, 10)
 
             const db = await openDb()
 
-            const insert = 'INSERT INTO StreamSubscribers(ConsumerDid, DataSourceUid, AgreementId, Timestamp, SubId, AmmountOfDataReceived) VALUES (?, ?, ?, ?, ?, ?)'
-            const select = 'SELECT * FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
+            const insert = 'INSERT INTO StreamSubscribers(ConsumerDid, OfferingId, AgreementId, Timestamp, SubId, AmmountOfDataReceived) VALUES (?, ?, ?, ?, ?, ?)'
+            const select = 'SELECT * FROM StreamSubscribers WHERE ConsumerDid=? AND OfferingId=?'
 
-            const insertParams = [params.consumerDid, params.dataSourceUid, params.agreementId, params.timestamp.replace(':', ''), subId, params.ammountOfDataReceived]
-            const selectParams = [params.consumerDid, params.dataSourceUid]
+            const insertParams = [params.consumerDid, params.offeringId, params.agreementId, params.timestamp.replace(':', ''), subId, params.ammountOfDataReceived]
+            const selectParams = [params.consumerDid, params.offeringId]
 
             const selectResult = await db.get(select, selectParams)
 
@@ -75,7 +75,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
 
             await db.close()
 
-            startStream(params.dataSourceUid)
+            startStream(params.offeringId)
 
         }
 
@@ -83,25 +83,25 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
 
             const db = await openDb()
 
-            const remove = 'DELETE * FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
-            const removeParams = [params.consumerDid, params.dataSourceUid]
+            const remove = 'DELETE * FROM StreamSubscribers WHERE ConsumerDid=? AND OfferingId=?'
+            const removeParams = [params.consumerDid, params.offeringId]
 
             await db.run(remove, removeParams)
 
             await db.close()
 
-            mqttClient.unsubscribe(`/from/${params.consumerDid}/${params.dataSourceUid}/${params.agreementId}`)
+            mqttClient.unsubscribe(`/from/${params.consumerDid}/${params.offeringId}/${params.agreementId}`)
 
             console.log(`${params.consumerDid} unsubscribed...`)
 
-            endStream(params.dataSourceUid)
+            endStream(params.offeringId)
         }
         if (topic.startsWith('/from/')) {
 
             const mode = 'stream'
 
             const session = npsession.get(params.consumerDid)
-            const npProvider = session.stream!.npProvider
+            const npProvider = session.stream!.npProvider!
 
             const por = JSON.parse(message.toString())
 
@@ -128,20 +128,21 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
                 await db.run(insert, insertParams)
             }
 
-            mqttClient.publish(`/to/${params.consumerDid}/${params.dataSourceUid}/${agreementId}`, JSON.stringify(pop), {qos:2})
+            mqttClient.publish(`/to/${params.consumerDid}/${params.offeringId}/${agreementId}`, JSON.stringify(pop), {qos:2})
 
-            npsession.set(consumerId, agreementId, npProvider, mode)
+            const agreement = session.stream?.agreement!
+            npsession.set(consumerId, agreementId, npProvider, agreement, mode)
         }
 
     })
 }
 
-async function startStream(dataSourceUid: string) {
+async function startStream(offeringId: string) {
 
     const db = await openDb()
 
-    const select = 'SELECT * FROM DataSources WHERE Uid=?'
-    const selectParams = [dataSourceUid]
+    const select = 'SELECT * FROM DataSources WHERE OfferingId=?'
+    const selectParams = [offeringId]
 
     const selectResult = await db.all(select, selectParams)
 
@@ -157,28 +158,28 @@ async function startStream(dataSourceUid: string) {
                     method: 'GET',
                 })
     
-                console.log(`Data source ${row.Uid} instructed to send data now...`)
+                console.log(`Data source ${row.OfferingId} instructed to send data now...`)
             } catch (error) {
-                console.log(`Cant reach ${row.Url} for data source ${row.Uid}`)
+                console.log(`Cant reach ${row.Url} for data source ${row.OfferingId}`)
             }
 
         });
     }
 }
 
-async function endStream(dataSourceUid: string) {
+async function endStream(offeringId: string) {
 
     const db = await openDb()
 
-    const select = 'SELECT FROM StreamSubscribers WHERE DataSourceUid=?'
-    const selectParams = [dataSourceUid]
+    const select = 'SELECT FROM StreamSubscribers WHERE OfferingId=?'
+    const selectParams = [offeringId]
 
     const selectResult = await db.get(select, selectParams)
 
     if(selectResult === undefined) {
 
-        const select = 'SELECT FROM DataSources WHERE Uid=?'
-        const selectParams = [dataSourceUid]
+        const select = 'SELECT FROM DataSources WHERE OfferingId=?'
+        const selectParams = [offeringId]
 
         const selectResult: DataSourcesRow | undefined = await db.get(select, selectParams)
 
@@ -190,9 +191,9 @@ async function endStream(dataSourceUid: string) {
                 await client.fetch(`${selectResult.Url}/unsubscribe`, {
                     method: 'GET',
                 })
-                console.log(`Data source ${selectResult.Uid} has no more subscribers to send data to...`)
+                console.log(`Data source ${selectResult.OfferingId} has no more subscribers to send data to...`)
             } catch (error) {
-                console.log(`Cant reach ${selectResult.Url} for data source ${selectResult.Uid}`)
+                console.log(`Cant reach ${selectResult.OfferingId} for data source ${selectResult.OfferingId}`)
             }
             
         }

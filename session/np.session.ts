@@ -1,27 +1,26 @@
 import { Mode } from '../types/openapi';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
+import { Agreement } from '../types/agreement';
 
 class NpSession {
 
     users: Record<string, Mode> = {}
 
-    set(consumerId: string, agreementId: number, npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig, mode: string) {
-
-        if (mode === 'batch') {
-            this.users[consumerId] = {
-                batch: {
-                npProvider: npProvider,
-                agreementId: agreementId
-                }
-            };
-        } else if (mode === 'stream') {
-            this.users[consumerId] = {
-                stream: {
-                npProvider: npProvider,
-                agreementId: agreementId
-                }
-            };
+    set(consumerId: string, agreementId: number, npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig, 
+        agreement: Agreement, mode: string) {
+        
+        if (this.users[consumerId] === undefined) {
+            this.users[consumerId] = {}
         }
+        
+        this.users[consumerId] = Object.assign(this.users[consumerId], 
+            {   
+                [mode]: {
+                    npProvider: npProvider,
+                    agreementId: agreementId,
+                    agreement: agreement
+                }
+            })
     }
 
     get(consumerId: string) {

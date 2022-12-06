@@ -21,7 +21,7 @@ export default async (): Promise<typeof batchRouter> => {
     const passport = await passportPromise()
     batchRouter.use(cors)
     
-    batchRouter.post('/batch/:data/:agreementId/:signature', 
+    batchRouter.post('/batch/:data/:agreementId', 
     passport.authenticate('jwtBearer', { session: false }), requestProcess.batchReqProcessing, requestValidation, batchController.poo
     )
 

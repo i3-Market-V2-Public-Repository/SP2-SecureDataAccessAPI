@@ -24,7 +24,7 @@ export default async (): Promise<typeof streamRouter> => {
     streamRouter.use(cors)
 
     streamRouter.post('/regds', passport.authenticate('digest', { session: false }), requestProcess.regdsReqProcessing, requestValidation, registerDataSource)
-    streamRouter.post('/newdata/:uid', rawParser, passport.authenticate('digest', { session: false }), newData)
+    streamRouter.post('/newdata/:offeringId', rawParser, passport.authenticate('digest', { session: false }), newData)
 
     return streamRouter
 }

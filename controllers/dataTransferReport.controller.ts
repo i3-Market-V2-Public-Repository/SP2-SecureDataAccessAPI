@@ -101,11 +101,11 @@ export async function getSubId(req: Request, res: Response, next: NextFunction) 
         // #swagger.description = 'Endpoint to get the subscription id.'
 
         const consumerDid = req.params.consumerDid
-        const dataSourceUid = req.params.dataSourceUid
+        const offeringId = req.params.offeringId
         const db = await openDb()
 
-        const select = 'SELECT SubId FROM StreamSubscribers WHERE ConsumerDid=? AND DataSourceUid=?'
-        const params = [consumerDid, dataSourceUid]
+        const select = 'SELECT SubId FROM StreamSubscribers WHERE ConsumerDid=? AND OfferingId=?'
+        const params = [consumerDid, offeringId]
 
         const selectResult = await db.get(select, params)
 

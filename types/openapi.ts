@@ -1,5 +1,6 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library';
+import { Agreement } from './agreement';
 
 export interface ApiError {
     name: string;
@@ -24,24 +25,6 @@ export interface PaymentBody {
     senderAddress: string;
     providerAddress: string;
     amount: string;
-}
-
-export interface Agreement {
-    agreementId: number;
-    providerPublicKey: string;
-    consumerPublicKey: string;
-    dataExchangeAgreementHash: string;
-    dataOffering: DataOffering;
-    purpose: string;
-    state: number;
-    providerId: string;
-    consumerId: string;
-    agreementDates: number[];
-    intendedUse: IntendedUse;
-    licenseGrant: LicenseGrant;
-    dataStream: boolean;
-    signed: boolean;
-    violation: Array<ViolationClass | number | string>;
 }
 
 export interface DataOffering {
@@ -72,8 +55,9 @@ export interface Mode {
     stream?: SessionSchema;
 }
 export interface SessionSchema {
-    npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig,
-    agreementId: number
+    npProvider?: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig;
+    agreementId: number;
+    agreement: Agreement;
 }
 
 export interface VerificationRequest {
@@ -160,7 +144,7 @@ export interface MqttParams {
     messageSplit: string[];
     topicSplit: string[];
     consumerDid: string;
-    dataSourceUid: string;
+    offeringId: string;
     timestamp: string;
     topicSubscribedTo: string;
     topicUnsubscribedTo: string;
@@ -169,7 +153,7 @@ export interface MqttParams {
 }
 
 export interface DataSourcesRow {
-    Uid: string;
+    OfferingId: string;
     Description: string;
     Url: string;
     Timestamp: string;
@@ -177,7 +161,7 @@ export interface DataSourcesRow {
 
 export interface StreamSubscribersRow {
     ConsumerDid: string;
-    DataSourceUid: string;
+    OfferingId: string;
     AgreementId: string;
     Timestamp: string;
     SubId: string
@@ -198,4 +182,22 @@ export interface Prerequisite {
     agreementId: number;
     providerPrivateKey: JWK;
     dataExchangeAgreement: DataExchangeAgreement;
+}
+
+export interface ConnectorResponse {
+    nextBlockId: string;
+    data: Buffer;
+}
+
+export interface AgreementState {
+    state: string;
+}
+
+export interface SerializedTxObj {
+    serializedTx: string;
+}
+
+export interface FeeTxRequest {
+    agreementId: string;
+    serializedTx: string;
 }

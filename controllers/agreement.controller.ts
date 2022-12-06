@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { openDb } from '../sqlite/sqlite';
-import { retrieveRawPaymentTransaction, retrievePrice } from '../common/common';
-import { PaymentBody, Prerequisite } from '../types/openapi';
+import { retrieveRawPaymentTransaction, retrievePrice, getAgreement, deployRawPaymentTx } from '../common/common';
+import { PaymentBody, Prerequisite, SerializedTxObj } from '../types/openapi';
+import jwtDecode, { JwtPayload } from 'jwt-decode';
+import { HttpError } from 'express-openapi-validator/dist/framework/types';
 
 export async function payMarketFee(req: Request, res: Response, next: NextFunction) {
 
@@ -19,13 +21,28 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
                 }
         } 
         */
-        const offeringId = req.params.offeringId
+        const agreementId = Number(req.params.agreementId)
         const payment: PaymentBody = req.body
 
-        const amount = await retrievePrice(offeringId)
+        const db = await openDb()
+
+        const select = 'SELECT Payment FROM MarketFeePayments WHERE AgreementId = ?'
+        const selectParams = [agreementId]
+
+        const selectResult = await db.get(select, selectParams)
+
+        await db.close()
+
+        if (selectResult) {
+            res.send({msg: 'Market fee already payed'})
+        }
+
+        const agreement = await getAgreement(agreementId)
+        
+        const amount = agreement.pricingModel.fee
+
         payment.amount = String(amount)
 
-        console.log(payment)
         const rawPaymentTransaction = await retrieveRawPaymentTransaction(payment)
         
         /* #swagger.responses[200] = { 
@@ -38,6 +55,57 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
     }
 }
 
+export async function deployRawPaymentTransaction(req: Request, res: Response, next: NextFunction) {
+    try {
+        
+        // #swagger.tags = ['AgreementController']
+        // #swagger.description = 'Endpoint to deploy transaction object market fee.'
+
+        /* 
+        #swagger.requestBody = {
+               required: true,
+               content : {
+                   "application/json": {
+                        schema: { $ref: "#/components/schemas/feeTxReq" }
+                    }
+                }
+        } 
+        */
+
+        const bearerToken = req.header('authorization')?.replace("Bearer ", "")
+        const decoded = jwtDecode<JwtPayload>(bearerToken!)
+        const consumerDid = decoded.sub
+
+        const agreementId = req.params.agreementId
+        const serializedTxObj: SerializedTxObj = req.body
+
+        const transactionObj = await deployRawPaymentTx(serializedTxObj)
+
+        if (transactionObj.transactionObject.status === true) {
+
+            const payment = 'true'
+
+            const db = await openDb()
+
+            const insert = 'INSERT INTO MarketFeePayments(AgreementId, ConsumerDid, Payment) VALUES (?, ?, ?)'
+            const insertParams = [agreementId, consumerDid, payment]
+
+            await db.run(insert, insertParams)
+
+            await db.close()
+
+            /* #swagger.responses[200] = { 
+               schema: { $ref: "#/components/schemas/feeTxRes" }
+             } */
+
+            res.send({ msg: 'Market fee payed' })
+        } else {
+            res.status(500).send(transactionObj)
+        }
+    } catch (error) {
+        next(error) // #swagger.responses[500]
+    }
+}
 export async function getAgreementId(req: Request, res: Response, next: NextFunction) {
 
     try {
