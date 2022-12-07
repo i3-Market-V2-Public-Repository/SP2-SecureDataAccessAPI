@@ -131,7 +131,9 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             mqttClient.publish(`/to/${params.consumerDid}/${params.offeringId}/${agreementId}`, JSON.stringify(pop), {qos:2})
 
             const agreement = session.stream?.agreement!
-            npsession.set(consumerId, agreementId, npProvider, agreement, mode)
+            const payment = session.stream?.payment!
+
+            npsession.set(consumerId, agreementId, npProvider, agreement, payment, mode)
         }
 
     })

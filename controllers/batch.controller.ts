@@ -47,10 +47,41 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         const bearerToken = req.header('authorization')?.replace("Bearer ", "")
         const decoded = jwtDecode<JwtPayload>(bearerToken!)
 
+        let session: Mode = npsession.get(decoded.sub!)
+
+        const db = await openDb()
+
+        if (session.batch?.payment === undefined) {
+
+            const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId = ?'
+            const selectPaymentParams = [agreementId, decoded.sub]
+
+            const selectPaymentResult = await db.get(selectPayment, selectPaymentParams)
+
+            if(!selectPaymentResult) {
+                const error = {
+                    // #swagger.responses[404]
+                    status: 404,
+                    path: 'batch.controller.poo',
+                    name: 'Not Found',
+                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}.`
+                }
+                throw new HttpError(error)
+            } else if (selectPaymentResult.ConsumerDid !== decoded.sub) {
+                const error = {
+                    // #swagger.responses[404]
+                    status: 403,
+                    path: 'batch.controller.poo',
+                    name: 'Forbidden',
+                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}. Please authenticate with the right consumer account!`
+                }
+                throw new HttpError(error)
+            }
+        }
+        
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
         const params = [agreementId]
 
-        const db = await openDb()
 
         const selectResult = await db.get(select, params)
         
@@ -87,16 +118,14 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
 
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
-
-        let session: Mode = npsession.get(decoded.sub!)
         
         if (session === undefined || session.batch?.agreementId !== agreementId) {
             const agreement = await getAgreement(agreementId)
             session = {
                 batch: {
                     agreementId: agreementId,
-                    agreement: agreement
-                    
+                    agreement: agreement,
+                    payment: true
                 }
             }
         }
@@ -153,8 +182,9 @@ async function poo(req: Request, res: Response, next: NextFunction) {
             const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
 
             const agreement = session.batch!.agreement
+            const payment = session.batch!.payment
 
-            npsession.set(decoded.sub!, agreementId, npProvider, agreement, mode)
+            npsession.set(decoded.sub!, agreementId, npProvider, agreement, payment, mode)
 
             /* #swagger.responses[200 - Block Response] = { schema: { $ref: "#/components/schemas/batchRes" }} */
             res.send(batchDaaResponse)
@@ -198,6 +228,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
         const session: Mode = npsession.get(decoded.sub!)
 
         const agreement = session.batch!.agreement
+        const payment = session.batch!.payment
 
         const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider!
         await npProvider.verifyPoR(por)
@@ -223,7 +254,7 @@ async function pop(req: Request, res: Response, next: NextFunction) {
             await db.run(insert, insertParams)
         }
 
-        npsession.set(consumerId, agreementId, npProvider, agreement, mode)
+        npsession.set(consumerId, agreementId, npProvider, agreement, payment, mode)
 
         /* #swagger.responses[200] = { schema: { $ref: "#/components/schemas/popRes" }} */
         res.send({pop: pop.jws})

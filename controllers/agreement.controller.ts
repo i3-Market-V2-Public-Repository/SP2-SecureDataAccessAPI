@@ -34,7 +34,15 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         await db.close()
 
         if (selectResult) {
-            res.send({msg: 'Market fee already payed'})
+            const error = {
+                // #swagger.responses[404]
+                status: 200,
+                path: 'agreement.controller.poo',
+                name: 'Ok',
+                message: `Market fee already payed for agreement ${agreementId}.`
+            }
+            throw new HttpError(error)
+            //res.send({msg: 'Market fee already payed'})
         }
 
         const agreement = await getAgreement(agreementId)
@@ -42,6 +50,8 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         const amount = agreement.pricingModel.fee
 
         payment.amount = String(amount)
+
+        console.log(payment)
 
         const rawPaymentTransaction = await retrieveRawPaymentTransaction(payment)
         

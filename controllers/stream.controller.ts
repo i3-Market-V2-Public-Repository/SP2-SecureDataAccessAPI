@@ -108,7 +108,9 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
             const selectParams = [agreementId]
 
             const selectResult = await db.get(select, selectParams)
-            
+
+            //check this out :) =============
+
             if(!selectResult) {
                 client.publish(`/to/${row.ConsumerDid}/${row.OfferingId}/${row.AgreementId}`, `ErrorMessage: Cant find dataExchangeAgreement for agreementId ${agreementId}...`, {qos:2})
             } else {
@@ -120,8 +122,8 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
                     session = {
                         stream: {
                             agreementId: agreementId,
-                            agreement: agreement
-                    
+                            agreement: agreement,
+                            payment: true
                         }
                     }
                 }
@@ -146,7 +148,9 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
                 }
             
                 const agreement = session.stream?.agreement!
-                npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, agreement, mode)
+                const payment = session.stream?.payment!
+
+                npsession.set(row.ConsumerDid, Number(row.AgreementId), npProvider, agreement, payment, mode)
 
                 const ammountOfDataReceived = Number(row.AmmountOfDataReceived) + dataSent
 

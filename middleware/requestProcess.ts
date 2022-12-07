@@ -56,13 +56,13 @@ export function getProviderPublicKeyReqProcessing(req: Request, res: Response, n
 export function feeReqProcessing(req: Request, res: Response, next: NextFunction) {
 
   const input: FeeRequest = {
-    offeringId: req.params.offeringId,
+    agreementId: req.params.agreementId,
     senderAddress: req.body.senderAddress,
     providerAddress: req.body.providerAddress
   };
 
   const rules = {
-    'offeringId': 'required|string',
+    'agreementId': 'required|string',
     'senderAddress': 'required|string',
     'providerAddress': 'required|string'
   };

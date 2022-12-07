@@ -256,14 +256,15 @@ const agreement: Agreement = {
 const text = "text"
 const rawBufferData = Buffer.from(text)
 const providerDltSigningKeyHex = env.providerDltSigningKeyHex
+const payment = true
 
 const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, privateJwk, rawBufferData, providerDltSigningKeyHex)
-npsession.set("consumerOne", 1, npProvider, agreement, "batch")
-npsession.set("consumerOne", 1, npProvider, agreement, "stream")
-npsession.set("consumerOne", 2, npProvider, agreement, "batch")
+npsession.set("consumerOne", 1, npProvider, agreement, payment,"batch")
+npsession.set("consumerOne", 1, npProvider, agreement, payment,"stream")
+npsession.set("consumerOne", 2, npProvider, agreement, payment,"batch")
 
-npsession.set("consumerTwo", 1, npProvider, agreement, "stream")
-npsession.set("consumerTwo", 2, npProvider, agreement, "batch")
+npsession.set("consumerTwo", 1, npProvider, agreement, payment,"stream")
+npsession.set("consumerTwo", 2, npProvider, agreement, payment,"batch")
 
 const tr: Mode = npsession.get("consumerOne")
 
@@ -275,7 +276,8 @@ if (session === undefined || session.batch?.agreementId !== agreementId) {
     session = {
         batch: {
             agreement: agreement,
-            agreementId: 3
+            agreementId: 3,
+            payment: payment
         }
     }
 }

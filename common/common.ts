@@ -10,7 +10,7 @@ import { Agreement } from "../types/agreement";
 
 export async function retrieveRawPaymentTransaction(payment: PaymentBody) {
 
-    const request = await fetch(`${env.tokenizerUrl}/api/v1/operations/fee-payment`, {
+    const request = await fetch(`${env.tokenizerUrl}/api/v1/treasury/transactions/payment`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

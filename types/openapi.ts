@@ -16,7 +16,7 @@ export interface BatchRequest {
 }
 
 export interface FeeRequest {
-    offeringId: string;
+    agreementId: string;
     senderAddress: string;
     providerAddress: string;
 }
@@ -58,6 +58,7 @@ export interface SessionSchema {
     npProvider?: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig;
     agreementId: number;
     agreement: Agreement;
+    payment: boolean;
 }
 
 export interface VerificationRequest {
