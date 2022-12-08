@@ -69,6 +69,20 @@ export async function getDataBlock(dataSourceUrl: string, filename: string, bloc
     return response
 }
 
+export async function listFiles(dataSourceUrl: string) {
+    
+    const request = await fetch(`${dataSourceUrl}/batch/listDataSourceFiles`, {
+        method: 'GET',
+        headers: {
+            'Accept': '*/*'
+        },
+    });
+    
+    const response: [] = await request.json();
+
+    return response
+}
+
 export async function fetchSignedResolution(verificationRequest: string) {
 
     const verification = await fetch(`${env.backplaneUrl}/conflictResolverService/verification`, {

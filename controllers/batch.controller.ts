@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { env } from '../config/env';
 import { BatchRequest, BatchDaaResponse, Mode, ConnectorResponse } from '../types/openapi';
-import { getTimestamp, getAgreement, getAgreementState, getDataBlock } from '../common/common';
+import { getTimestamp, getAgreement, getAgreementState, getDataBlock, listFiles } from '../common/common';
 import { openDb } from '../sqlite/sqlite';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
@@ -259,5 +259,43 @@ async function pop(req: Request, res: Response, next: NextFunction) {
         next(error)
     }
 }
+async function listDataSourceFiles(req: Request, res: Response, next: NextFunction) {
+        
+    try {
+        
+         // #swagger.tags = ['BatchController']
+        // #swagger.description = 'Endpoint to retrieve the list of files from data source.'
+        
+        const offeringId = req.params.offeringId
 
-export { poo, pop }
+        const db = await openDb()
+        
+        const selectUrl = 'SELECT Url FROM DataSources WHERE OfferingId = ?'
+        const selectParams = [offeringId]
+
+        const selectResults = await db.get(selectUrl, selectParams)
+        await db.close()
+
+        if (!selectResults) {
+            const error = {
+                // #swagger.responses[404]
+                status: 404,
+                path: 'batch.controller.poo',
+                name: 'Not found',
+                message: `Cant find data source url for offeringId ${offeringId}.`
+            }
+            throw new HttpError(error)
+        } 
+
+        const dataSourceUrl = selectResults.Url
+
+        const files = await listFiles(dataSourceUrl)
+
+        res.send(files)
+
+    } catch (error) {
+        next(error)
+    }
+}
+
+export { poo, pop, listDataSourceFiles }

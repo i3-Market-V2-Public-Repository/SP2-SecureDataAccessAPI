@@ -21,6 +21,9 @@ export default async (): Promise<typeof batchRouter> => {
     const passport = await passportPromise()
     batchRouter.use(cors)
     
+    batchRouter.get('/batch/listDataSourceFiles/:offeringId', batchController.listDataSourceFiles
+    )
+
     batchRouter.post('/batch/:data/:agreementId', 
     passport.authenticate('jwtBearer', { session: false }), requestProcess.batchReqProcessing, requestValidation, batchController.poo
     )
@@ -28,6 +31,6 @@ export default async (): Promise<typeof batchRouter> => {
     batchRouter.post('/batch/pop', 
     passport.authenticate('jwtBearer', { session: false }), requestProcess.popReqProcessing, requestValidation, batchController.pop
     )
-    
+
     return batchRouter
 }

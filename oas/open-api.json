@@ -285,6 +285,32 @@
         }
       }
     },
+    "/batch/listDataSourceFiles/{offeringId}": {
+      "get": {
+        "tags": [
+          "BatchController"
+        ],
+        "description": "Endpoint to retrieve the list of files from data source.",
+        "parameters": [
+          {
+            "name": "offeringId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/batch/{data}/{agreementId}": {
       "post": {
         "tags": [
@@ -573,7 +599,7 @@
         }
       }
     },
-    "/report/getSubId/{consumerDid}/{dataSourceUid}": {
+    "/report/getSubId/{consumerDid}/{offeringId}": {
       "get": {
         "tags": [
           "DataTransferReportController"
@@ -589,7 +615,7 @@
             }
           },
           {
-            "name": "dataSourceUid",
+            "name": "offeringId",
             "in": "path",
             "required": true,
             "schema": {
