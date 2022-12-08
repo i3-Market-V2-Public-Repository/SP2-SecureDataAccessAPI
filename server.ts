@@ -11,6 +11,7 @@ import oidcAuthRouterPromise from './routes/oidcAuth.router';
 import streamAuthRouterPromise from './routes/streamAuth.router';
 import streamRouterPromise from './routes/stream.router';
 import openapiRouterPromise from './routes/openapi.router';
+import connectorRegistrationRouterPromise from './routes/connectorRegistration.router'
 import config from './config/config';
 import passportPromise from './middleware/passport';
 import mqttinit from './mqtt/mqttInit';
@@ -38,6 +39,7 @@ const main = async function (): Promise<void> {
   app.use(passport.initialize())
   app.use('/api/doc', swaggerUi.serve, swaggerUi.setup(swaggerFile))
   app.use('/', 
+  await connectorRegistrationRouterPromise(),
   await streamRouterPromise(),
   await oidcAuthRouterPromise(),
   await batchRoutesPromise(),

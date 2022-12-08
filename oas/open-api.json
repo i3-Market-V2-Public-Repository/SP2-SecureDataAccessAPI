@@ -30,11 +30,15 @@
   "tags": [
     {
       "name": "AgreementController",
-      "description": "Endpoints for agreement and market fee"
+      "description": "Endpoints for agreement and market fee."
+    },
+    {
+      "name": "ConnectorRegistrationController",
+      "description": "Endpoints to register a batch or stream data connector."
     },
     {
       "name": "BatchController",
-      "description": "Endpoints for batch data transfer"
+      "description": "Endpoints for batch data transfer."
     },
     {
       "name": "StreamController",
@@ -42,15 +46,15 @@
     },
     {
       "name": "StreamAuthController",
-      "description": "Endpoints used by mqtt broker to authenticate the consumer"
+      "description": "Endpoints used by mqtt broker to authenticate the consumer."
     },
     {
       "name": "DataTransferReportController",
-      "description": "Endpoints related to transfer report"
+      "description": "Endpoints related to transfer report."
     },
     {
       "name": "OidcAuthController",
-      "description": "Endpoints to request a bearer token as consumer or provider"
+      "description": "Endpoints to request a bearer token as consumer or provider."
     }
   ],
   "paths": {
@@ -85,6 +89,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           },
           "422": {
             "description": "Unprocessable Entity"
@@ -278,7 +285,7 @@
         }
       }
     },
-    "/batch/{data}/{agreementId}/{signature}": {
+    "/batch/{data}/{agreementId}": {
       "post": {
         "tags": [
           "BatchController"
@@ -295,14 +302,6 @@
           },
           {
             "name": "agreementId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "signature",
             "in": "path",
             "required": true,
             "schema": {
@@ -429,6 +428,33 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/popReq"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/regds": {
+      "post": {
+        "tags": [
+          "ConnectorRegistrationController"
+        ],
+        "description": "Endpoint to register or unregister a datasource.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "422": {
+            "description": "Unprocessable Entity"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/regdsReq"
               }
             }
           }
@@ -710,33 +736,6 @@
         "description": "",
         "parameters": [],
         "responses": {}
-      }
-    },
-    "/regds": {
-      "post": {
-        "tags": [
-          "StreamController"
-        ],
-        "description": "Endpoint to register or unregister a datasource.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "422": {
-            "description": "Unprocessable Entity"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/regdsReq"
-              }
-            }
-          }
-        }
       }
     },
     "/newdata/{offeringId}": {

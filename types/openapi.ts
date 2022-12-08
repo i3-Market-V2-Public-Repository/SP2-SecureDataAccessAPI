@@ -10,7 +10,6 @@ export interface ApiError {
 export interface BatchRequest {
     data: string;
     agreementId: number;
-    signature: string;
     blockId: string;
     blockAck: string;
 }

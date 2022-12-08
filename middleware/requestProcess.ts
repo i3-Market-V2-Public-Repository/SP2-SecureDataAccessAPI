@@ -8,7 +8,6 @@ export function batchReqProcessing(req: Request, res: Response, next: NextFuncti
   const input: BatchRequest = {
     data: req.params.data,
     agreementId: Number(req.params.agreementId),
-    signature: req.params.signature,
     blockId: req.body.blockId,
     blockAck: req.body.blockAck
   };
@@ -16,7 +15,6 @@ export function batchReqProcessing(req: Request, res: Response, next: NextFuncti
   const rules = {
     'data': 'required|string',
     'agreementId': 'required|integer',
-    'signature': 'required|string',
     'blockId': 'required|string',
     'blockAck': 'required|string',
   };

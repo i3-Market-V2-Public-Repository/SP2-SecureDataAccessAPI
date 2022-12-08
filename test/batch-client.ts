@@ -36,11 +36,11 @@ const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = {
     // The orig (data provider) address in the DLT (hexadecimal).
     ledgerSignerAddress: '0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903',
     // Maximum acceptable delay between the issuance of the proof of origing (PoO) by the orig and the reception of the proof of reception (PoR) by the orig
-    pooToPorDelay: 10000,
+    pooToPorDelay: 100000,
     // Maximum acceptable delay between the issuance of the proof of origing (PoP) by the orig and the reception of the proof of publication (PoR) by the dest
-    pooToPopDelay: 20000,
+    pooToPopDelay: 30000,
     // If the dest (data consumer) does not receive the PoP, it could still get the decryption secret from the DLT. This defines the maximum acceptable delay between the issuance of the proof of origing (PoP) by the orig and the publication (block time) of the secret on the blockchain.
-    pooToSecretDelay: 150000
+    pooToSecretDelay: 180000
 }
 
 const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
@@ -48,16 +48,15 @@ const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
 }
 
 const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2ODY5MDcyNiwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjY4NjA0MzI2fQ.xnGXN3H754Hz1Y7bdJgmxTxSY59imspJLDmTwq6VUkQ"
-const signature = "0xf863028302d6cf83bebc20943663f8622526ec82ae571e4265dad6967dd7426080801ba0f1e54e9090508f453c415e27e326e543756afaf9a0a59df943e144c899517282a056b0d94183aa059db98f464ecf5b8e0d9d766f9c3f87c265c23fd9a205b07702"
 
-const agreementId = 1
+const agreementId = 12
 const data = "exampledata.7z"
 let blockId = "null"
 let blockAck = "null"
 
 const oneBlock = async () => {
 
-    const content = await requestData(data, agreementId, signature, bearerToken, blockId, blockAck)
+    const content = await requestData(data, agreementId, bearerToken, blockId, blockAck)
 
     if (content.poo != 'null') {
         const poo = content.poo
@@ -92,7 +91,7 @@ const oneFile = async () => {
 
     while (check_eof) {
 
-        let content = await requestData(data, agreementId, signature, bearerToken, blockId, blockAck)
+        let content = await requestData(data, agreementId, bearerToken, blockId, blockAck)
 
         console.log(content)
 
@@ -147,8 +146,8 @@ async function requestPop(bearerToken: string, por: nonRepudiationLibrary.Stored
     return pop
 }
 
-async function requestData(data: string, agreementId: number, signature: string, bearerToken: string, blockId: string, blockAck: string) {
-    const resource = await fetch(`${env.publicUri}/` + `batch/${data}/${agreementId}/${signature}`, {
+async function requestData(data: string, agreementId: number, bearerToken: string, blockId: string, blockAck: string) {
+    const resource = await fetch(`${env.publicUri}/` + `batch/${data}/${agreementId}`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',

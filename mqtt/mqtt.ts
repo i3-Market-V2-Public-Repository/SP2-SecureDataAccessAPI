@@ -68,8 +68,8 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const selectParams = [params.consumerDid, params.offeringId]
 
             const selectResult = await db.get(select, selectParams)
-
-            if (selectResult == undefined) {
+            
+            if (selectResult === undefined) {
                 await db.run(insert, insertParams)
             }
 

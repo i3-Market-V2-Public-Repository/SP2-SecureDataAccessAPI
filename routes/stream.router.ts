@@ -1,7 +1,5 @@
-import { requestValidation } from '../middleware/requestValidation';
 import { RequestHandler } from 'express';
-import { registerDataSource, newData } from '../controllers/stream.controller';
-import * as requestProcess from '../middleware/requestProcess';
+import { newData } from '../controllers/stream.controller';
 import * as express from 'express';
 import passportPromise from '../middleware/passport';
 import config from '../config/config';
@@ -23,7 +21,6 @@ export default async (): Promise<typeof streamRouter> => {
     const passport = await passportPromise()
     streamRouter.use(cors)
 
-    streamRouter.post('/regds', passport.authenticate('digest', { session: false }), requestProcess.regdsReqProcessing, requestValidation, registerDataSource)
     streamRouter.post('/newdata/:offeringId', rawParser, passport.authenticate('digest', { session: false }), newData)
 
     return streamRouter

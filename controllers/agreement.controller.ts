@@ -25,6 +25,23 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         const payment: PaymentBody = req.body
 
         const db = await openDb()
+        
+        const selectProviderInsertedInfo = 'SELECT * FROM DataExchangeAgreements WHERE AgreementId=?'
+
+        const selectParamsProviderInsertedInfo  = [agreementId]
+
+        const selectResultProviderInsertedInfo  = await db.all(selectProviderInsertedInfo, selectParamsProviderInsertedInfo)
+
+        if (selectResultProviderInsertedInfo.length === 0) {
+            const error = {
+                // #swagger.responses[404]
+                status: 404,
+                path: 'agreement.controller.poo',
+                name: 'Not Found',
+                message: `Provider didn't post any info about agreement ${agreementId}`
+            }
+            throw new HttpError(error)
+        }
 
         const select = 'SELECT Payment FROM MarketFeePayments WHERE AgreementId = ?'
         const selectParams = [agreementId]
@@ -35,14 +52,12 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
 
         if (selectResult) {
             const error = {
-                // #swagger.responses[404]
                 status: 200,
                 path: 'agreement.controller.poo',
                 name: 'Ok',
-                message: `Market fee already payed for agreement ${agreementId}.`
+                message: `Market fee already payed for agreement ${agreementId}`
             }
             throw new HttpError(error)
-            //res.send({msg: 'Market fee already payed'})
         }
 
         const agreement = await getAgreement(agreementId)

@@ -18,11 +18,15 @@ const doc = {
     tags: [
         {
             'name': 'AgreementController',
-            'description': 'Endpoints for agreement and market fee'
+            'description': 'Endpoints for agreement and market fee.'
+        },
+        {
+            'name': 'ConnectorRegistrationController',
+            'description': 'Endpoints to register a batch or stream data connector.'
         },
         {
             'name': 'BatchController',
-            'description': 'Endpoints for batch data transfer'
+            'description': 'Endpoints for batch data transfer.'
         },
         {
             'name': 'StreamController',
@@ -30,15 +34,15 @@ const doc = {
         },
         {
             'name': 'StreamAuthController',
-            'description': 'Endpoints used by mqtt broker to authenticate the consumer'
+            'description': 'Endpoints used by mqtt broker to authenticate the consumer.'
         },
         {
             'name': 'DataTransferReportController',
-            'description': 'Endpoints related to transfer report'
+            'description': 'Endpoints related to transfer report.'
         },
         {
             'name': 'OidcAuthController',
-            'description': 'Endpoints to request a bearer token as consumer or provider'
+            'description': 'Endpoints to request a bearer token as consumer or provider.'
         }
     ],
     components: {

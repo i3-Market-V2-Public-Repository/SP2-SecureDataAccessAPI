@@ -51,32 +51,29 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
         const db = await openDb()
 
-        if (session.batch?.payment === undefined) {
+        const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId = ?'
+        const selectPaymentParams = [agreementId]
 
-            const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId = ?'
-            const selectPaymentParams = [agreementId, decoded.sub]
+        const selectPaymentResult = await db.get(selectPayment, selectPaymentParams)
 
-            const selectPaymentResult = await db.get(selectPayment, selectPaymentParams)
-
-            if(!selectPaymentResult) {
-                const error = {
-                    // #swagger.responses[404]
-                    status: 404,
-                    path: 'batch.controller.poo',
-                    name: 'Not Found',
-                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}.`
-                }
-                throw new HttpError(error)
-            } else if (selectPaymentResult.ConsumerDid !== decoded.sub) {
-                const error = {
-                    // #swagger.responses[404]
-                    status: 403,
-                    path: 'batch.controller.poo',
-                    name: 'Forbidden',
-                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}. Please authenticate with the right consumer account!`
-                }
-                throw new HttpError(error)
+        if(!selectPaymentResult) {
+            const error = {
+                // #swagger.responses[404]
+                status: 404,
+                path: 'batch.controller.poo',
+                name: 'Not Found',
+                message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}.`
             }
+            throw new HttpError(error)
+        } else if (selectPaymentResult.ConsumerDid !== decoded.sub) {
+            const error = {
+                // #swagger.responses[404]
+                status: 403,
+                path: 'batch.controller.poo',
+                name: 'Forbidden',
+                message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}. Please authenticate with the right consumer account!`
+            }
+            throw new HttpError(error)
         }
         
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
