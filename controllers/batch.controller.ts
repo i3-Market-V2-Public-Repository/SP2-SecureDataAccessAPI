@@ -7,6 +7,8 @@ import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import npsession from '../session/np.session';
+import wallet from '../config/providerWallet';
+import { parseJwk } from '@i3m/non-repudiation-library';
 
 const BJSON = require('buffer-json')
 
@@ -28,13 +30,6 @@ async function poo(req: Request, res: Response, next: NextFunction) {
         */
 
         const mode = 'batch'
-        // Let us define the RPC endopint to the ledger (just in case we don't want to use the default one)
-        const dltConfig: Partial<nonRepudiationLibrary.DltConfig> = {
-            rpcProviderUrl: env.rpcProviderUrl
-        }
-
-        // We are going to directly provide the private key associated to the dataExchange.ledgerSignerAddress. You could also have pass a DltSigner instance to dltConfig.signer in order to use an externam Wallet, such as the i3-MARKET one
-        const providerDltSigningKeyHex = env.providerDltSigningKeyHex
 
         const batchReqParams: BatchRequest = res.locals.reqParams.input
         //const agreement: Agreement = await getAgreement(batchReqParams.agreementId)
@@ -49,33 +44,58 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
         let session: Mode = npsession.get(decoded.sub!)
 
+        if (session === undefined || session.batch?.agreementId !== agreementId) {
+            const agreement = await getAgreement(agreementId)
+            if (agreement.dataStream === true) {
+                const error = {
+                    // #swagger.responses[500]
+                    status: 500,
+                    path: 'batch.controller.poo',
+                    name: 'Internal Server Error',
+                    message: `Agreement with agreementId ${agreementId} has field dataStream as true. For batch transfer it is expected to be false.`
+                }
+                throw new HttpError(error)
+            }
+            session = {
+                batch: {
+                    agreementId: agreementId,
+                    agreement: agreement,
+                    payment: false
+                }
+            }
+        }
+
         const db = await openDb()
 
-        const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId = ?'
-        const selectPaymentParams = [agreementId]
+        if (session.batch?.agreement.pricingModel.fee! > 0) {
+            const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId=?'
+            const selectPaymentParams = [agreementId]
 
-        const selectPaymentResult = await db.get(selectPayment, selectPaymentParams)
+            const selectPaymentResult = await db.get(selectPayment, selectPaymentParams)
 
-        if(!selectPaymentResult) {
-            const error = {
-                // #swagger.responses[404]
-                status: 404,
-                path: 'batch.controller.poo',
-                name: 'Not Found',
-                message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}.`
+            if(!selectPaymentResult) {
+                const error = {
+                    // #swagger.responses[404]
+                    status: 404,
+                    path: 'batch.controller.poo',
+                    name: 'Not Found',
+                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}.`
+                }
+                throw new HttpError(error)
+            } else if (selectPaymentResult.ConsumerDid !== decoded.sub) {
+                const error = {
+                    // #swagger.responses[404]
+                    status: 403,
+                    path: 'batch.controller.poo',
+                    name: 'Forbidden',
+                    message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}. Please authenticate with the right consumer account!`
+                }
+                throw new HttpError(error)
             }
-            throw new HttpError(error)
-        } else if (selectPaymentResult.ConsumerDid !== decoded.sub) {
-            const error = {
-                // #swagger.responses[404]
-                status: 403,
-                path: 'batch.controller.poo',
-                name: 'Forbidden',
-                message: `Consumer with did ${decoded.sub} didn't pay for agreementId ${agreementId}. Please authenticate with the right consumer account!`
-            }
-            throw new HttpError(error)
+        } else {
+            session.batch!.payment = true
         }
-        
+
         const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
         const params = [agreementId]
 
@@ -110,23 +130,16 @@ async function poo(req: Request, res: Response, next: NextFunction) {
             }
         }
 
+        const providerWallet = await wallet()
+        const providerDid = env.providerDid
+        const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerWallet, providerDid)
+
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
-        dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
-        dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
+        dataExchangeAgreement.orig = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.orig)), true)
+        dataExchangeAgreement.dest = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.dest)), true)
 
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
-        
-        if (session === undefined || session.batch?.agreementId !== agreementId) {
-            const agreement = await getAgreement(agreementId)
-            session = {
-                batch: {
-                    agreementId: agreementId,
-                    agreement: agreement,
-                    payment: true
-                }
-            }
-        }
-        
+
         const offeringId = session.batch?.agreement.dataOffering.dataOfferingId
 
         const selectUrl = 'SELECT Url FROM DataSources WHERE OfferingId = ?'
@@ -147,9 +160,8 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
         await db.close()
 
-        console.log(selectResults)
         const dataSourceUrl = selectResults.Url
-        console.log(dataSourceUrl)
+
         if (blockId === 'null' && blockAck === 'null') {
 
             const getBlock = await getDataBlock(dataSourceUrl, data, blockId)
@@ -171,9 +183,16 @@ async function poo(req: Request, res: Response, next: NextFunction) {
             const responseToBuffer: ConnectorResponse = BJSON.parse(responseToString)
             const rawBufferData = responseToBuffer.data
 
-            const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltSigningKeyHex)
+            const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltAgent)
 
             const poo = await npProvider.generatePoO()
+
+            //  // Store PoO in the wallet
+            // const resource = await providerWallet.resourceCreate({
+            //     type: 'NonRepudiationProof',
+            //     resource: poo.jws
+            // })
+
             const cipherBlock = npProvider.block.jwe
 
             const batchDaaResponse: BatchDaaResponse = { blockId: blockId, nextBlockId: nextBlockId, poo: poo.jws, cipherBlock: cipherBlock }
@@ -217,6 +236,8 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         const mode = 'batch'
 
+        const providerWallet = await wallet()
+
         const por = req.body.por
 
         const bearerToken = req.header('authorization')?.replace("Bearer ", "")
@@ -229,8 +250,21 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider!
         await npProvider.verifyPoR(por)
+
+        // // Store PoR in the wallet
+        // await providerWallet.resourceCreate({
+        //     type: 'NonRepudiationProof',
+        //     resource: por.jws
+        // })
+
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
+
+        // // Store PoP in the wallet
+        // await providerWallet.resourceCreate({
+        //     type: 'NonRepudiationProof',
+        //     resource: pop.jws
+        // })
 
         const verificationRequest = await npProvider.generateVerificationRequest()
 

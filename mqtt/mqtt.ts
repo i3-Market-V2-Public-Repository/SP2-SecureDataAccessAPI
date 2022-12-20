@@ -5,6 +5,8 @@ import { getTimestamp } from '../common/common';
 import * as mqtt from 'mqtt';
 import * as crypto from 'crypto';
 import npsession from '../session/np.session';
+import wallet from '../config/providerWallet';
+import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 
 const DigestFetch = require('digest-fetch');
 
@@ -103,10 +105,29 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             const session = npsession.get(params.consumerDid)
             const npProvider = session.stream!.npProvider!
 
+
+            const providerWallet = await wallet()
+            const providerDid = env.providerDid
+            const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerWallet, providerDid)
+
             const por = JSON.parse(message.toString())
 
             await npProvider.verifyPoR(por)
+
+            // Store PoR in the wallet
+            await providerWallet.resourceCreate({
+                type: 'NonRepudiationProof',
+                resource: por.jws
+            })
+
             const pop = await npProvider.generatePoP()
+
+            // Store PoP in the wallet
+            await providerWallet.resourceCreate({
+                type: 'NonRepudiationProof',
+                resource: pop.jws
+            })
+
             const poo = npProvider.block.poo
             
             const verificationRequest = await npProvider.generateVerificationRequest()

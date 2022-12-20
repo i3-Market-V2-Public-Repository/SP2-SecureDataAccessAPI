@@ -2,6 +2,8 @@ import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import * as fs from 'fs';
 import { env } from '../config/env';
 import 'isomorphic-fetch';
+import { HttpInitiatorTransport, Session } from '@i3m/wallet-protocol'
+import { WalletApi } from '@i3m/wallet-protocol-api'
 
 const privateJwk: nonRepudiationLibrary.JWK = {
     kty: 'EC',
@@ -58,6 +60,15 @@ const oneBlock = async () => {
 
     const content = await requestData(data, agreementId, bearerToken, blockId, blockAck)
 
+    const sessionObj = JSON.parse('{"masterKey":{"from":{"name":"Initiator"},"to":{"name":"Wallet desktop"},"port":29170,"na":"bto0GtBh9KjvG8PRRySTGQ","nb":"Q1oHivusP5DuV0hXhe8IdA","secret":"3AiI59_DJZNbgLFy0W4EUc7srnsOwSidlWp8ayzyP78"},"code":"65794a68624763694f694a6b615849694c434a6c626d4d694f694a424d6a553252304e4e496e302e2e68717036594c42372d654f786857724e2e762d3032305f752d684a625f664b776e74754e774c6f304f4742735a35536a6f2d4d4e422d6e62776d6558554d56515a54684b434f36327a4e5151636f5738634a42693850634437525a316c5231496b37776b4634366a586f7a785a4633597432387a546452656b45574d706a6c444351565061544f4a67434c5a6561544b5875784a6f756c7050686b5a794536385f7a582d6e37626c2d68564732706a635a4e69587a704730616a654e4a7961754f464a6a70657a696a45646764764f767a5f453167646a486e64697862716273307a6b597478753649735f654f675f705876466b4279784d326b6b64595468355a4f586573363831706f74775062376c6f4d7662615f465076545f38566d50724f63535441566a52556c432d6341745f5171677147616338776f4a37626a4e6a792d5471665f6142666b324d78337932713355676371567159332d776230683571484b553636583336706c39706f6b486b4368576b31654276436a4d4e41523671487a596c30667537626a4c4b43772e73756e4c776e6e33437648775438612d324b4c364841"}')
+    
+    // Setup consumer wallet
+    const transport = new HttpInitiatorTransport()
+    const session = await Session.fromJSON(transport, sessionObj)
+    let consumerWallet = new WalletApi(session)
+
+    const consumerDid = 'did:ethr:i3m:0x037e1117d84099a5763f763960f993956dc17aacd2af06cd8a236584a547ec3fe3'
+    
     if (content.poo != 'null') {
         const poo = content.poo
 

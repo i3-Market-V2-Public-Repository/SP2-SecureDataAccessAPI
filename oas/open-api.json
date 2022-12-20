@@ -1152,11 +1152,15 @@
         "properties": {
           "senderAddress": {
             "type": "string",
-            "example": "0x5126Eb9a03c75A732ecCA20EBfca4041142154B5"
+            "example": "0xb794f5ea0ba39494ce839613fffba74279579268"
           },
-          "providerAddress": {
+          "providerMPAddress": {
             "type": "string",
-            "example": "0xaad8734423CDd561355B39aFFDD8AFcbE1755f6a"
+            "example": "0x111122220ba39494ce839613fffba74279571234"
+          },
+          "consumerMPAddress": {
+            "type": "string",
+            "example": "0x111122220ba39494ce839613fffba74279571234"
           }
         },
         "xml": {

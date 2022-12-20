@@ -24,6 +24,19 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
         const agreementId = Number(req.params.agreementId)
         const payment: PaymentBody = req.body
 
+        const agreement = await getAgreement(agreementId)
+
+        if (agreement.pricingModel.fee === 0) {
+            const error = {
+                // #swagger.responses[200]
+                status: 200,
+                path: 'agreement.controller.poo',
+                name: 'OK',
+                message: `You dont have to pay for agreement ${agreementId}. The fee is 0.`
+            }
+            throw new HttpError(error)
+        }
+
         const db = await openDb()
         
         const selectProviderInsertedInfo = 'SELECT * FROM DataExchangeAgreements WHERE AgreementId=?'
@@ -59,12 +72,10 @@ export async function payMarketFee(req: Request, res: Response, next: NextFuncti
             }
             throw new HttpError(error)
         }
-
-        const agreement = await getAgreement(agreementId)
         
         const amount = agreement.pricingModel.fee
 
-        payment.amount = String(amount)
+        payment.feeAmount = amount
 
         console.log(payment)
 
@@ -105,7 +116,7 @@ export async function deployRawPaymentTransaction(req: Request, res: Response, n
         const serializedTxObj: SerializedTxObj = req.body
 
         const transactionObj = await deployRawPaymentTx(serializedTxObj)
-
+        //aici
         if (transactionObj.transactionObject.status === true) {
 
             const payment = 'true'
@@ -219,10 +230,13 @@ export async function prerequisiteInfo(req: Request, res: Response, next: NextFu
         
         const insert = 'INSERT INTO DataExchangeAgreements(AgreementId, ConsumerPublicKey, ProviderPublicKey, ProviderPrivateKey, DataExchangeAgreement) VALUES (?, ?, ?, ?, ?)'
         const select = 'SELECT * FROM DataExchangeAgreements WHERE AgreementId=?'
+        const update = 'UPDATE DataExchangeAgreements SET ConsumerPublicKey=?, ProviderPublicKey=?, ProviderPrivateKey=?, DataExchangeAgreement=? WHERE AgreementId=?'
 
         const insertParams = [info.agreementId, JSON.stringify(info.dataExchangeAgreement.dest), JSON.stringify(info.dataExchangeAgreement.orig), 
                              JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataExchangeAgreement)]
         const selectParams = [info.agreementId]
+        const updateParams = [JSON.stringify(info.dataExchangeAgreement.dest), JSON.stringify(info.dataExchangeAgreement.orig), 
+                            JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataExchangeAgreement), info.agreementId]
 
         const selectResult = await db.all(select, selectParams)
 
@@ -232,9 +246,9 @@ export async function prerequisiteInfo(req: Request, res: Response, next: NextFu
             res.send({msg: 'Agreement info inserted'})
         } else {
             // #swagger.responses[200]
-            res.send({msg: `Info for agreement ${info.agreementId} already inserted`})
+            await db.run(update, updateParams)
+            res.send({msg: `Info for agreement ${info.agreementId} updated`})
         }
-
         await db.close()
 
     } catch (error) {

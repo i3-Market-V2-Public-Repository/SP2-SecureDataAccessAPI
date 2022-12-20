@@ -56,13 +56,14 @@ export function feeReqProcessing(req: Request, res: Response, next: NextFunction
   const input: FeeRequest = {
     agreementId: req.params.agreementId,
     senderAddress: req.body.senderAddress,
-    providerAddress: req.body.providerAddress
+    providerMPAddress: req.body.providerMPAddress,
+    consumerMPAddress: req.body.consumerMPAddress
   };
 
   const rules = {
     'agreementId': 'required|string',
     'senderAddress': 'required|string',
-    'providerAddress': 'required|string'
+    'providerMPAddress': 'required|string'
   };
 
   res.locals.reqParams = { input, rules }

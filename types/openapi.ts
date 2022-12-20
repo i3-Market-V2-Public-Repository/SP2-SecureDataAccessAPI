@@ -17,13 +17,15 @@ export interface BatchRequest {
 export interface FeeRequest {
     agreementId: string;
     senderAddress: string;
-    providerAddress: string;
+    providerMPAddress: string;
+    consumerMPAddress: string;
 }
 
 export interface PaymentBody {
     senderAddress: string;
-    providerAddress: string;
-    amount: string;
+    providerMPAddress: string;
+    consumerMPAddress: string;
+    feeAmount: number;
 }
 
 export interface DataOffering {
