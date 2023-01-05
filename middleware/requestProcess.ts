@@ -159,23 +159,24 @@ export function dataExchangeAgreementInfoProcessing(req: Request, res: Response,
 
   const rules = {
     'agreementId': 'required|integer',
+    'providerPublicKey': 'required|object',
     'providerPrivateKey': 'required|object',
-    'dataExchangeAgreement.orig': 'required|object',
-    'dataExchangeAgreement.dest': 'required|object',
-    'dataExchangeAgreement.encAlg': 'required|in:A128GCM,A256GCM',
-    'dataExchangeAgreement.signingAlg': 'required|in:ES256,ES384,ES512',
-    'dataExchangeAgreement.hashAlg': 'required|in:SHA-256,SHA-384,SHA-512',
-    'dataExchangeAgreement.ledgerContractAddress': 'required|string',
-    'dataExchangeAgreement.ledgerSignerAddress': 'required|string',
-    'dataExchangeAgreement.pooToPorDelay': 'required|integer',
-    'dataExchangeAgreement.pooToPopDelay': 'required|integer',
-    'dataExchangeAgreement.pooToSecretDelay': 'required|integer'
+    'dataSharingAgreement.dataExchangeAgreement.orig': 'required|string',
+    'dataSharingAgreement.dataExchangeAgreement.dest': 'required|string',
+    'dataSharingAgreement.dataExchangeAgreement.encAlg': 'required|in:A128GCM,A256GCM',
+    'dataSharingAgreement.dataExchangeAgreement.signingAlg': 'required|in:ES256,ES384,ES512',
+    'dataSharingAgreement.dataExchangeAgreement.hashAlg': 'required|in:SHA-256,SHA-384,SHA-512',
+    'dataSharingAgreement.dataExchangeAgreement.ledgerContractAddress': 'required|string',
+    'dataSharingAgreement.dataExchangeAgreement.ledgerSignerAddress': 'required|string',
+    'dataSharingAgreement.dataExchangeAgreement.pooToPorDelay': 'required|integer',
+    'dataSharingAgreement.dataExchangeAgreement.pooToPopDelay': 'required|integer',
+    'dataSharingAgreement.dataExchangeAgreement.pooToSecretDelay': 'required|integer'
   };
 
   const msg = {
-    'dataExchangeAgreement.encAlg.in': 'Must be A128GCM or A256GCM',
-    'dataExchangeAgreement.signingAlg.in': 'Must be ES256, ES384 or ES512',
-    'dataExchangeAgreement.hashAlg.in': 'Must be SHA-256, SHA-384 or SHA-512'
+    'dataSharingAgreement.dataExchangeAgreement.encAlg.in': 'Must be A128GCM or A256GCM',
+    'dataSharingAgreement.dataExchangeAgreement.signingAlg.in': 'Must be ES256, ES384 or ES512',
+    'dataSharingAgreement.dataExchangeAgreement.hashAlg.in': 'Must be SHA-256, SHA-384 or SHA-512'
   }
 
   res.locals.reqParams = { input, rules, msg }

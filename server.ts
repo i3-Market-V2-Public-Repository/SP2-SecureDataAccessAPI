@@ -18,8 +18,8 @@ import mqttinit from './mqtt/mqttInit';
 import { mqttProcess } from './mqtt/mqtt';
 import { errorMiddleware } from './middleware/error';
 import { initializeDb } from './sqlite/initializeDatabase';
+import providerWallet from './config/providerOperatorWallet';
 import swaggerUi = require('swagger-ui-express');
-
 const swaggerFile = require('./oas/open-api.json')
 
 const main = async function (): Promise<void> {
@@ -56,6 +56,8 @@ const main = async function (): Promise<void> {
   const mqttClient = mqttinit.get('client')
   await mqttProcess(mqttClient)
   
+  await providerWallet.init()
+
   const server = http.createServer(app);
   const { addr, port } = config.server;
   server.listen(port, addr)

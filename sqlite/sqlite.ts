@@ -16,7 +16,7 @@ export async function createTables(db: Database<sqlite3.Database, sqlite3.Statem
                               'CREATE TABLE IF NOT EXISTS StreamSubscribers(ConsumerDid TEXT, OfferingId TEXT, AgreementId TEXT, Timestamp TEXT, SubId TEXT, AmmountOfDataReceived TEXT, PRIMARY KEY (ConsumerDid, OfferingId));',
                               'CREATE TABLE IF NOT EXISTS DataSources(OfferingId TEXT PRIMARY KEY, Description TEXT, Url TEXT, Timestamp TEXT);',
                               'CREATE TABLE IF NOT EXISTS Accounting(Date INTEGER, ConsumerId TEXT, ExchangeId TEXT, AgreementId INTEGER, Poo TEXT, Por TEXT, Pop TEXT PRIMARY KEY, VerificationRequest TEXT, Mode TEXT);',
-                              'CREATE TABLE IF NOT EXISTS DataExchangeAgreements(AgreementId INTEGER PRIMARY KEY, ConsumerPublicKey TEXT, ProviderPublicKey TEXT, ProviderPrivateKey TEXT, DataExchangeAgreement TEXT);',
+                              'CREATE TABLE IF NOT EXISTS DataExchangeAgreements(AgreementId INTEGER PRIMARY KEY, ConsumerPublicKey TEXT, ProviderPublicKey TEXT, ProviderPrivateKey TEXT, DataSharingAgreement TEXT, DataExchangeAgreement TEXT);',
                               'CREATE TABLE IF NOT EXISTS MarketFeePayments(AgreementId INTEGER PRIMARY KEY, ConsumerDid TEXT, Payment TEXT);',
     ];
     

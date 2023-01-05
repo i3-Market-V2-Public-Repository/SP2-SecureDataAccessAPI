@@ -4,6 +4,9 @@ import { retrieveRawPaymentTransaction, retrievePrice, getAgreement, deployRawPa
 import { PaymentBody, Prerequisite, SerializedTxObj } from '../types/openapi';
 import jwtDecode, { JwtPayload } from 'jwt-decode';
 import { HttpError } from 'express-openapi-validator/dist/framework/types';
+import providerOperatorWallet from '../config/providerOperatorWallet'
+import { WalletComponents } from '@i3m/wallet-desktop-openapi/types'
+import { parseJwk } from '@i3m/non-repudiation-library';
 
 export async function payMarketFee(req: Request, res: Response, next: NextFunction) {
 
@@ -225,18 +228,34 @@ export async function prerequisiteInfo(req: Request, res: Response, next: NextFu
         */
 
         const info:Prerequisite = req.body
+        const dataSharingAgreement = info.dataSharingAgreement as WalletComponents.Schemas.DataSharingAgreement
+
+        console.log(info.dataSharingAgreement)
+
+        const providerWallet = providerOperatorWallet.getProviderOperatorWallet()
+
+        await providerWallet!.resourceCreate({
+            type: 'Contract',
+            resource: {
+              dataSharingAgreement,
+              keyPair: {
+                publicJwk: await parseJwk(JSON.parse(JSON.stringify(info.providerPublicKey)), true),
+                privateJwk: await parseJwk(JSON.parse(JSON.stringify(info.providerPrivateKey)), true)
+              }
+            }
+          })
 
         const db = await openDb()
         
-        const insert = 'INSERT INTO DataExchangeAgreements(AgreementId, ConsumerPublicKey, ProviderPublicKey, ProviderPrivateKey, DataExchangeAgreement) VALUES (?, ?, ?, ?, ?)'
+        const insert = 'INSERT INTO DataExchangeAgreements(AgreementId, ConsumerPublicKey, ProviderPublicKey, ProviderPrivateKey, DataSharingAgreement, DataExchangeAgreement) VALUES (?, ?, ?, ?, ?, ?)'
         const select = 'SELECT * FROM DataExchangeAgreements WHERE AgreementId=?'
-        const update = 'UPDATE DataExchangeAgreements SET ConsumerPublicKey=?, ProviderPublicKey=?, ProviderPrivateKey=?, DataExchangeAgreement=? WHERE AgreementId=?'
+        const update = 'UPDATE DataExchangeAgreements SET ConsumerPublicKey=?, ProviderPublicKey=?, ProviderPrivateKey=?, DataSharingAgreement=?, DataExchangeAgreement=? WHERE AgreementId=?'
 
-        const insertParams = [info.agreementId, JSON.stringify(info.dataExchangeAgreement.dest), JSON.stringify(info.dataExchangeAgreement.orig), 
-                             JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataExchangeAgreement)]
+        const insertParams = [info.agreementId, JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.dest), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.orig), 
+                             JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement)]
         const selectParams = [info.agreementId]
-        const updateParams = [JSON.stringify(info.dataExchangeAgreement.dest), JSON.stringify(info.dataExchangeAgreement.orig), 
-                            JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataExchangeAgreement), info.agreementId]
+        const updateParams = [JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.dest), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.orig), 
+                            JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataSharingAgreement), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement), info.agreementId]
 
         const selectResult = await db.all(select, selectParams)
 

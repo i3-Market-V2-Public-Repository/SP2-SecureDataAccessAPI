@@ -6,7 +6,7 @@ import { Mode, StreamResponse, StreamSubscribersRow } from '../types/openapi';
 import { env } from '../config/env';
 import mqttinit from '../mqtt/mqttInit';
 import npsession from '../session/np.session';
-import wallet from '../config/providerWallet';
+import providerWallet from '../config/providerOperatorWallet';
 
 export async function newData(req: Request, res: Response, next: NextFunction) {
     try {       
@@ -100,15 +100,16 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
 
                         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 
-                        const providerWallet = await wallet()
-                        const providerDid = env.providerDid
-                        const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerWallet, providerDid)
+                        const providerOperatorWallet = providerWallet.getProviderOperatorWallet()
+                        const providerDid = providerWallet.getProviderDid()
+
+                        const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerOperatorWallet!, providerDid!)
 
                         const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltAgent)
                         const poo = await npProvider.generatePoO()
 
                         // Store PoO in the wallet
-                        await providerWallet.resourceCreate({
+                        await providerOperatorWallet!.resourceCreate({
                             type: 'NonRepudiationProof',
                             resource: poo.jws
                         })

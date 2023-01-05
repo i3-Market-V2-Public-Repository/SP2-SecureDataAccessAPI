@@ -1,6 +1,7 @@
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import { DataExchangeAgreement, JWK } from '@i3m/non-repudiation-library';
 import { Agreement } from './agreement';
+import { DataSharingAgreement } from './dataSharingAgreement'
 
 export interface ApiError {
     name: string;
@@ -182,8 +183,9 @@ export interface DataExchangeAgreementReq {
 
 export interface Prerequisite {
     agreementId: number;
+    providerPublicKey: JWK;
     providerPrivateKey: JWK;
-    dataExchangeAgreement: DataExchangeAgreement;
+    dataSharingAgreement: DataSharingAgreement;
 }
 
 export interface ConnectorResponse {

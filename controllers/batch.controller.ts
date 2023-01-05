@@ -7,8 +7,9 @@ import { HttpError } from 'express-openapi-validator/dist/framework/types';
 import * as nonRepudiationLibrary from '@i3m/non-repudiation-library';
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import npsession from '../session/np.session';
-import wallet from '../config/providerWallet';
-import { parseJwk } from '@i3m/non-repudiation-library';
+import providerWallet from '../config/providerOperatorWallet';
+import { JWK, parseJwk } from '@i3m/non-repudiation-library';
+import { stringify } from 'ts-jest';
 
 const BJSON = require('buffer-json')
 
@@ -130,13 +131,15 @@ async function poo(req: Request, res: Response, next: NextFunction) {
             }
         }
 
-        const providerWallet = await wallet()
-        const providerDid = env.providerDid
-        const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerWallet, providerDid)
+        const providerOperatorWallet = providerWallet.getProviderOperatorWallet()
+        const providerDid = providerWallet.getProviderDid()
+
+        const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerOperatorWallet!, providerDid!)
 
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
-        dataExchangeAgreement.orig = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.orig)), true)
-        dataExchangeAgreement.dest = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.dest)), true)
+
+        dataExchangeAgreement.orig = await parseJwk(JSON.parse(dataExchangeAgreement.orig), true)
+        dataExchangeAgreement.dest = await parseJwk(JSON.parse(dataExchangeAgreement.dest), true)
 
         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 
@@ -187,11 +190,10 @@ async function poo(req: Request, res: Response, next: NextFunction) {
 
             const poo = await npProvider.generatePoO()
 
-            //  // Store PoO in the wallet
-            // const resource = await providerWallet.resourceCreate({
-            //     type: 'NonRepudiationProof',
-            //     resource: poo.jws
-            // })
+            await providerOperatorWallet!.resourceCreate({
+                type: 'NonRepudiationProof',
+                resource: poo.jws
+            })
 
             const cipherBlock = npProvider.block.jwe
 
@@ -236,9 +238,9 @@ async function pop(req: Request, res: Response, next: NextFunction) {
 
         const mode = 'batch'
 
-        const providerWallet = await wallet()
+        const providerOperatorWallet = providerWallet.getProviderOperatorWallet()
 
-        const por = req.body.por
+        const por: string = req.body.por
 
         const bearerToken = req.header('authorization')?.replace("Bearer ", "")
         const decoded = jwtDecode<JwtPayload>(bearerToken!)
@@ -251,20 +253,20 @@ async function pop(req: Request, res: Response, next: NextFunction) {
         const npProvider: nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig = session.batch!.npProvider!
         await npProvider.verifyPoR(por)
 
-        // // Store PoR in the wallet
-        // await providerWallet.resourceCreate({
-        //     type: 'NonRepudiationProof',
-        //     resource: por.jws
-        // })
+        await providerOperatorWallet!.resourceCreate({
+            type: 'NonRepudiationProof',
+            resource: por
+        })
+
 
         const pop = await npProvider.generatePoP()
         const poo = npProvider.block.poo
 
-        // // Store PoP in the wallet
-        // await providerWallet.resourceCreate({
-        //     type: 'NonRepudiationProof',
-        //     resource: pop.jws
-        // })
+        await providerOperatorWallet!.resourceCreate({
+            type: 'NonRepudiationProof',
+            resource: pop.jws
+        })
+
 
         const verificationRequest = await npProvider.generateVerificationRequest()
 

@@ -18,6 +18,5 @@ export const env = {
     rpcProviderUrl: String(process.env.RPC_PROVIDER_URL) ?? 'http://95.211.3.244:8545',
     providerDltSigningKeyHex: String(process.env.PROVIDER_DLT_SIGNING_KEY_HEX) ?? '0x4b7903c8fe18e4ba5329939c7d1c4318307794a544f3eb5fb3b6536210c98676',
     storagePassword: String(process.env.STORAGE_PASSWORD) ?? 'provider',
-    storagePath: String(process.env.STORAGE_PATH) ?? './config/wallet',
-    providerDid: String(process.env.PROVIDER_DID) ?? 'did:ethr:i3m:0x02bfe73464de64d6d9a32c99a92356e641ff16427a59b20a95e8d348a60145259a'
+    storagePath: String(process.env.STORAGE_PATH) ?? './config/wallet'
 }
