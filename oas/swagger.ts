@@ -5,7 +5,7 @@ const endpointsFiles = ['../routes/*.ts']
 const doc = {
     openapi: 3.0,
     info: {
-        version: '3.0.0',
+        version: '3.0.3',
         title: 'Secure Data Access API',
         description: 'Secure Data Access API for the i3-Market Project',
         license: {

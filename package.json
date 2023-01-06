@@ -1,6 +1,6 @@
 {
   "name": "secure-data-access-api",
-  "version": "3.0.0",
+  "version": "3.0.3",
   "description": "Secure data-access component for data transfer",
   "main": "server.ts",
   "scripts": {

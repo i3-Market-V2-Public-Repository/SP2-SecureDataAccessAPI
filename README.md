@@ -46,43 +46,104 @@ docker-compose up --build
 * Before the consumer can transfer data using the secure data access api, there has to be a contractual agreement between the consumer and the provider. In the flow to reach an agreement both consumer and provider will have to generate a public-private key pair, used for data proof signing, exchange the public keys and later sign the contract. After this part is done, an agreement is reached.
 * The provider will have to publish to data access api the agreement Id, provider private key that was generated and the DataExchangeAgreement to this endpoint:
 
-    <mark>POST /agreement/dataExchangeAgreementInfo<mark>
+    <mark>POST /agreement/dataSharingAgreementInfo<mark>
 
 Body example:
 ```
 {
   "agreementId": 1,
+  "providerPublicKey": {
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "gdt9dxd1Q9p5fn8Pch8tuMf6h4lZ_NtbgeVAddPkk5M",
+    "y": "coJR5-TGBUwIV_5YovlWzt4suV0wnxfvWJDvekJBCwQ",
+    "alg": "ES256"
+  },
   "providerPrivateKey": {
     "kty": "EC",
     "crv": "P-256",
-    "x": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY",
-    "y": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk",
-    "d": "bF0ufFC_AHEY98HIZnqLdIMp1Hnh-8Y2sglQ15GOp7k",
+    "x": "gdt9dxd1Q9p5fn8Pch8tuMf6h4lZ_NtbgeVAddPkk5M",
+    "y": "coJR5-TGBUwIV_5YovlWzt4suV0wnxfvWJDvekJBCwQ",
+    "d": "KeFLl9SKwpJHuAmyyxe7YXiCr4cDGK4uMU1fxnrrLjw",
     "alg": "ES256"
   },
-  "dataExchangeAgreement": {
-    "orig": {
-      "kty": "EC",
-      "crv": "P-256",
-      "x": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY",
-      "y": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk",
-      "alg": "ES256"
+  "dataSharingAgreement": {
+    "dataOfferingDescription": {
+      "dataOfferingId": "63b55691f762242150a481d3",
+      "version": 0,
+      "title": "Offering Transport",
+      "category": "transport",
+      "active": true
     },
-    "dest": {
-      "kty": "EC",
-      "crv": "P-256",
-      "x": "342tToZrvj64K-0vPuq9B5t8Bx3kjOlVW574Q2vo-zY",
-      "y": "KtukEk-5ZSvJznoWYl99l6x8CbxbMDYJ7fBbwU8Dnpk",
-      "alg": "ES256"
+    "parties": {
+      "providerDid": "did:ethr:i3m:0x03437770960595d9d1ccd73c5df15d688b7db8ec96567df000fdfeffa41def675f",
+      "consumerDid": "did:ethr:i3m:0x037e1117d84099a5763f763960f993956dc17aacd2af06cd8a236584a547ec3fe3"
     },
-    "encAlg": "A256GCM",
-    "signingAlg": "ES256",
-    "hashAlg": "SHA-256",
-    "ledgerContractAddress": "0x8d407a1722633bdd1dcf221474be7a44c05d7c2f",
-    "ledgerSignerAddress": "0x17bd12C2134AfC1f6E9302a532eFE30C19B9E903",
-    "pooToPorDelay": 10000,
-    "pooToPopDelay": 20000,
-    "pooToSecretDelay": 150000
+    "purpose": "",
+    "duration": {
+      "creationDate": 1672824609,
+      "startDate": 1672824609,
+      "endDate": 1704360609
+    },
+    "intendedUse": {
+      "processData": true,
+      "shareDataWithThirdParty": true,
+      "editData": true
+    },
+    "licenseGrant": {
+      "transferable": true,
+      "exclusiveness": true,
+      "paidUp": true,
+      "revocable": true,
+      "processing": true,
+      "modifying": true,
+      "analyzing": true,
+      "storingData": true,
+      "storingCopy": true,
+      "reproducing": true,
+      "distributing": true,
+      "loaning": true,
+      "selling": true,
+      "renting": true,
+      "furtherLicensing": true,
+      "leasing": true
+    },
+    "dataStream": false,
+    "personalData": false,
+    "pricingModel": {
+      "paymentType": "one-time purchase",
+      "pricingModelName": "string",
+      "basicPrice": 0,
+      "currency": "EUR",
+      "fee": 0,
+      "hasPaymentOnSubscription": {
+        "paymentOnSubscriptionName": "",
+        "paymentType": "",
+        "timeDuration": "",
+        "description": "",
+        "repeat": "",
+        "hasSubscriptionPrice": 0
+      },
+      "hasFreePrice": {
+        "hasPriceFree": true
+      }
+    },
+    "dataExchangeAgreement": {
+      "orig": "{\"alg\":\"ES256\",\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"gdt9dxd1Q9p5fn8Pch8tuMf6h4lZ_NtbgeVAddPkk5M\",\"y\":\"coJR5-TGBUwIV_5YovlWzt4suV0wnxfvWJDvekJBCwQ\"}",
+      "dest": "{\"alg\":\"ES256\",\"crv\":\"P-256\",\"kty\":\"EC\",\"x\":\"YI28gvV0utmvjobKned_4m63bc2SkJuKxJBllANfKUc\",\"y\":\"JMKzTxxe4jNcoZYO4D7Xe_nnZtKeZy5z_JmqjoUyLf8\"}",
+      "encAlg": "A128GCM",
+      "signingAlg": "ES256",
+      "hashAlg": "SHA-256",
+      "ledgerContractAddress": "0x8d407A1722633bDD1dcf221474be7a44C05d7c2F",
+      "ledgerSignerAddress": "0xdB0CE68bAbC145B18786C2D820B8CcCc40e1a4f5",
+      "pooToPorDelay": 100000,
+      "pooToPopDelay": 30000,
+      "pooToSecretDelay": 180000
+    },
+    "signatures": {
+      "providerSignature": "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJkYXRhT2ZmZXJpbmdEZXNjcmlwdGlvbiI6eyJkYXRhT2ZmZXJpbmdJZCI6IjYzYjU1NjkxZjc2MjI0MjE1MGE0ODFkMyIsInZlcnNpb24iOjAsInRpdGxlIjoiT2ZmZXJpbmcgVHJhbnNwb3J0IiwiY2F0ZWdvcnkiOiJ0cmFuc3BvcnQiLCJhY3RpdmUiOnRydWV9LCJwYXJ0aWVzIjp7InByb3ZpZGVyRGlkIjoiZGlkOmV0aHI6aTNtOjB4MDM0Mzc3NzA5NjA1OTVkOWQxY2NkNzNjNWRmMTVkNjg4YjdkYjhlYzk2NTY3ZGYwMDBmZGZlZmZhNDFkZWY2NzVmIiwiY29uc3VtZXJEaWQiOiJkaWQ6ZXRocjppM206MHgwMzdlMTExN2Q4NDA5OWE1NzYzZjc2Mzk2MGY5OTM5NTZkYzE3YWFjZDJhZjA2Y2Q4YTIzNjU4NGE1NDdlYzNmZTMifSwicHVycG9zZSI6IiIsImR1cmF0aW9uIjp7ImNyZWF0aW9uRGF0ZSI6MTY3MjgyNDYwOSwic3RhcnREYXRlIjoxNjcyODI0NjA5LCJlbmREYXRlIjoxNzA0MzYwNjA5fSwiaW50ZW5kZWRVc2UiOnsicHJvY2Vzc0RhdGEiOnRydWUsInNoYXJlRGF0YVdpdGhUaGlyZFBhcnR5Ijp0cnVlLCJlZGl0RGF0YSI6dHJ1ZX0sImxpY2Vuc2VHcmFudCI6eyJ0cmFuc2ZlcmFibGUiOnRydWUsImV4Y2x1c2l2ZW5lc3MiOnRydWUsInBhaWRVcCI6dHJ1ZSwicmV2b2NhYmxlIjp0cnVlLCJwcm9jZXNzaW5nIjp0cnVlLCJtb2RpZnlpbmciOnRydWUsImFuYWx5emluZyI6dHJ1ZSwic3RvcmluZ0RhdGEiOnRydWUsInN0b3JpbmdDb3B5Ijp0cnVlLCJyZXByb2R1Y2luZyI6dHJ1ZSwiZGlzdHJpYnV0aW5nIjp0cnVlLCJsb2FuaW5nIjp0cnVlLCJzZWxsaW5nIjp0cnVlLCJyZW50aW5nIjp0cnVlLCJmdXJ0aGVyTGljZW5zaW5nIjp0cnVlLCJsZWFzaW5nIjp0cnVlfSwiZGF0YVN0cmVhbSI6ZmFsc2UsInBlcnNvbmFsRGF0YSI6ZmFsc2UsInByaWNpbmdNb2RlbCI6eyJwYXltZW50VHlwZSI6Im9uZS10aW1lIHB1cmNoYXNlIiwicHJpY2luZ01vZGVsTmFtZSI6InN0cmluZyIsImJhc2ljUHJpY2UiOjAsImN1cnJlbmN5IjoiRVVSIiwiZmVlIjowLCJoYXNQYXltZW50T25TdWJzY3JpcHRpb24iOnsicGF5bWVudE9uU3Vic2NyaXB0aW9uTmFtZSI6IiIsInBheW1lbnRUeXBlIjoiIiwidGltZUR1cmF0aW9uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJyZXBlYXQiOiIiLCJoYXNTdWJzY3JpcHRpb25QcmljZSI6MH0sImhhc0ZyZWVQcmljZSI6eyJoYXNQcmljZUZyZWUiOnRydWV9fSwiZGF0YUV4Y2hhbmdlQWdyZWVtZW50Ijp7Im9yaWciOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCJnZHQ5ZHhkMVE5cDVmbjhQY2g4dHVNZjZoNGxaX050YmdlVkFkZFBrazVNXCIsXCJ5XCI6XCJjb0pSNS1UR0JVd0lWXzVZb3ZsV3p0NHN1VjB3bnhmdldKRHZla0pCQ3dRXCJ9IiwiZGVzdCI6IntcImFsZ1wiOlwiRVMyNTZcIixcImNydlwiOlwiUC0yNTZcIixcImt0eVwiOlwiRUNcIixcInhcIjpcIllJMjhndlYwdXRtdmpvYktuZWRfNG02M2JjMlNrSnVLeEpCbGxBTmZLVWNcIixcInlcIjpcIkpNS3pUeHhlNGpOY29aWU80RDdYZV9ublp0S2VaeTV6X0ptcWpvVXlMZjhcIn0iLCJlbmNBbGciOiJBMTI4R0NNIiwic2lnbmluZ0FsZyI6IkVTMjU2IiwiaGFzaEFsZyI6IlNIQS0yNTYiLCJsZWRnZXJDb250cmFjdEFkZHJlc3MiOiIweDhkNDA3QTE3MjI2MzNiREQxZGNmMjIxNDc0YmU3YTQ0QzA1ZDdjMkYiLCJsZWRnZXJTaWduZXJBZGRyZXNzIjoiMHhkQjBDRTY4YkFiQzE0NUIxODc4NkMyRDgyMEI4Q2NDYzQwZTFhNGY1IiwicG9vVG9Qb3JEZWxheSI6MTAwMDAwLCJwb29Ub1BvcERlbGF5IjozMDAwMCwicG9vVG9TZWNyZXREZWxheSI6MTgwMDAwfSwiaXNzIjoiZGlkOmV0aHI6aTNtOjB4MDM0Mzc3NzA5NjA1OTVkOWQxY2NkNzNjNWRmMTVkNjg4YjdkYjhlYzk2NTY3ZGYwMDBmZGZlZmZhNDFkZWY2NzVmIiwiaWF0IjoxNjcyODMyOTAyfQ.lFyYmVy8q9iwN1_I_ThEKCaSiEHVkV21rwl_jRuX9c9khpUwpd7dQtOKvNl_kms-ITd9lQl2aPNuxzliUNHqVQ",
+      "consumerSignature": "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJkYXRhT2ZmZXJpbmdEZXNjcmlwdGlvbiI6eyJkYXRhT2ZmZXJpbmdJZCI6IjYzYjU1NjkxZjc2MjI0MjE1MGE0ODFkMyIsInZlcnNpb24iOjAsInRpdGxlIjoiT2ZmZXJpbmcgVHJhbnNwb3J0IiwiY2F0ZWdvcnkiOiJ0cmFuc3BvcnQiLCJhY3RpdmUiOnRydWV9LCJwYXJ0aWVzIjp7InByb3ZpZGVyRGlkIjoiZGlkOmV0aHI6aTNtOjB4MDM0Mzc3NzA5NjA1OTVkOWQxY2NkNzNjNWRmMTVkNjg4YjdkYjhlYzk2NTY3ZGYwMDBmZGZlZmZhNDFkZWY2NzVmIiwiY29uc3VtZXJEaWQiOiJkaWQ6ZXRocjppM206MHgwMzdlMTExN2Q4NDA5OWE1NzYzZjc2Mzk2MGY5OTM5NTZkYzE3YWFjZDJhZjA2Y2Q4YTIzNjU4NGE1NDdlYzNmZTMifSwicHVycG9zZSI6IiIsImR1cmF0aW9uIjp7ImNyZWF0aW9uRGF0ZSI6MTY3MjgyNDYwOSwic3RhcnREYXRlIjoxNjcyODI0NjA5LCJlbmREYXRlIjoxNzA0MzYwNjA5fSwiaW50ZW5kZWRVc2UiOnsicHJvY2Vzc0RhdGEiOnRydWUsInNoYXJlRGF0YVdpdGhUaGlyZFBhcnR5Ijp0cnVlLCJlZGl0RGF0YSI6dHJ1ZX0sImxpY2Vuc2VHcmFudCI6eyJ0cmFuc2ZlcmFibGUiOnRydWUsImV4Y2x1c2l2ZW5lc3MiOnRydWUsInBhaWRVcCI6dHJ1ZSwicmV2b2NhYmxlIjp0cnVlLCJwcm9jZXNzaW5nIjp0cnVlLCJtb2RpZnlpbmciOnRydWUsImFuYWx5emluZyI6dHJ1ZSwic3RvcmluZ0RhdGEiOnRydWUsInN0b3JpbmdDb3B5Ijp0cnVlLCJyZXByb2R1Y2luZyI6dHJ1ZSwiZGlzdHJpYnV0aW5nIjp0cnVlLCJsb2FuaW5nIjp0cnVlLCJzZWxsaW5nIjp0cnVlLCJyZW50aW5nIjp0cnVlLCJmdXJ0aGVyTGljZW5zaW5nIjp0cnVlLCJsZWFzaW5nIjp0cnVlfSwiZGF0YVN0cmVhbSI6ZmFsc2UsInBlcnNvbmFsRGF0YSI6ZmFsc2UsInByaWNpbmdNb2RlbCI6eyJwYXltZW50VHlwZSI6Im9uZS10aW1lIHB1cmNoYXNlIiwicHJpY2luZ01vZGVsTmFtZSI6InN0cmluZyIsImJhc2ljUHJpY2UiOjAsImN1cnJlbmN5IjoiRVVSIiwiZmVlIjowLCJoYXNQYXltZW50T25TdWJzY3JpcHRpb24iOnsicGF5bWVudE9uU3Vic2NyaXB0aW9uTmFtZSI6IiIsInBheW1lbnRUeXBlIjoiIiwidGltZUR1cmF0aW9uIjoiIiwiZGVzY3JpcHRpb24iOiIiLCJyZXBlYXQiOiIiLCJoYXNTdWJzY3JpcHRpb25QcmljZSI6MH0sImhhc0ZyZWVQcmljZSI6eyJoYXNQcmljZUZyZWUiOnRydWV9fSwiZGF0YUV4Y2hhbmdlQWdyZWVtZW50Ijp7Im9yaWciOiJ7XCJhbGdcIjpcIkVTMjU2XCIsXCJjcnZcIjpcIlAtMjU2XCIsXCJrdHlcIjpcIkVDXCIsXCJ4XCI6XCJnZHQ5ZHhkMVE5cDVmbjhQY2g4dHVNZjZoNGxaX050YmdlVkFkZFBrazVNXCIsXCJ5XCI6XCJjb0pSNS1UR0JVd0lWXzVZb3ZsV3p0NHN1VjB3bnhmdldKRHZla0pCQ3dRXCJ9IiwiZGVzdCI6IntcImFsZ1wiOlwiRVMyNTZcIixcImNydlwiOlwiUC0yNTZcIixcImt0eVwiOlwiRUNcIixcInhcIjpcIllJMjhndlYwdXRtdmpvYktuZWRfNG02M2JjMlNrSnVLeEpCbGxBTmZLVWNcIixcInlcIjpcIkpNS3pUeHhlNGpOY29aWU80RDdYZV9ublp0S2VaeTV6X0ptcWpvVXlMZjhcIn0iLCJlbmNBbGciOiJBMTI4R0NNIiwic2lnbmluZ0FsZyI6IkVTMjU2IiwiaGFzaEFsZyI6IlNIQS0yNTYiLCJsZWRnZXJDb250cmFjdEFkZHJlc3MiOiIweDhkNDA3QTE3MjI2MzNiREQxZGNmMjIxNDc0YmU3YTQ0QzA1ZDdjMkYiLCJsZWRnZXJTaWduZXJBZGRyZXNzIjoiMHhkQjBDRTY4YkFiQzE0NUIxODc4NkMyRDgyMEI4Q2NDYzQwZTFhNGY1IiwicG9vVG9Qb3JEZWxheSI6MTAwMDAwLCJwb29Ub1BvcERlbGF5IjozMDAwMCwicG9vVG9TZWNyZXREZWxheSI6MTgwMDAwfSwiaXNzIjoiZGlkOmV0aHI6aTNtOjB4MDM3ZTExMTdkODQwOTlhNTc2M2Y3NjM5NjBmOTkzOTU2ZGMxN2FhY2QyYWYwNmNkOGEyMzY1ODRhNTQ3ZWMzZmUzIiwiaWF0IjoxNjcyODMyMDk5fQ.LlUyaZZDPbzxFoX-sQvhUkLI0SGSEfuDjbi9UYEV4Q5zHOiBi9YxPCBJi8M8tAp2QD95HOZSp_zZ2B8za0RD_w"
+    }
   }
 }
 ```
@@ -93,18 +154,19 @@ Body example:
 
 * The next step is to pay the market fee in order to retrieve a signed transaction. To create a transaction object you can call this endpoint from data access:
 
-    <mark>POST /agreement/payMarketFee/{offeringId}<mark>
+    <mark>POST /agreement/payMarketFee/{agreementId}<mark>
 
-OfferingId example:
+agreementId example:
 ```
-633c4c50f69d7c2212c9ec4b
+17
 ```
 
 Body example (the Ethereum addresses can be retrieved from the I3M wallet):
 ```
 {
-  "senderAddress": "0x5126Eb9a03c75A732ecCA20EBfca4041142154B5",
-  "providerAddress": "0xaad8734423CDd561355B39aFFDD8AFcbE1755f6a"
+  "senderAddress": "0xb794f5ea0ba39494ce839613fffba74279579268",
+  "providerMPAddress": "0x111122220ba39494ce839613fffba74279571234",
+  "consumerMPAddress": "0x111122220ba39494ce839613fffba74279571234"
 }
 ```
 
@@ -151,7 +213,7 @@ Response body:
 
 * After the prerequisite part is in place the consumer can start the batch data transfer by using this endpoint from Data Access API:
 
-    <mark>POST /batch/{data}/{agreementId}/{signature}<mark>
+    <mark>POST /batch/{data}/{agreementId}<mark>
 
 
 <mark>The first call will always have to be using this request body:<mark>
@@ -167,11 +229,7 @@ exampledata.7z
 ```
 AgreementId parameter example:
 ```
-1
-```
-Signature parameter example:
-```
-0xf863028302d6cf83bebc20943663f8622526ec82ae571e4265dad6967dd7426080801ba0f1e54e9090508f453c415e27e326e543756afaf9a0a59df943e144c899517282a056b0d94183aa059db98f464ecf5b8e0d9d766f9c3f87c265c23fd9a205b07702
+17
 ```
 Resposne body example:
 ```

@@ -1,5 +1,3 @@
-import { env } from '../config/env';
-
 const consumerJwks = {
     publicJwk: {
       kty: 'EC',
@@ -104,35 +102,41 @@ import { WalletComponents } from '@i3m/wallet-desktop-openapi/types'
 
 async function nrp () {
 
-    const sessionObj = {"masterKey":{"from":{"name":"Initiator"},"to":{"name":"Wallet desktop"},"port":29170,"na":"nrRndyrxTBbfMVPwNPmWtg","nb":"dBOcb5sN4F5a0UTOME1Hqg","secret":"wz0OYzbeND2mf_VbQneRtfBUqOBSFXCNW_69dRLLc00"},"code":"65794a68624763694f694a6b615849694c434a6c626d4d694f694a424d6a553252304e4e496e302e2e6e79747a514f5a4f72614d6c653073692e39785457723050786631757764537368345a546b6b484d76304a764c68626a423449434149396d3741746f3759677136334d627a696a4e464b44484a78564549526470467234437844737577314d577258577035363158746d5f6e7a6752304e5745317679736169724d43745931384f7739386e6a6a6e5a6e675f5646546634364b6646696969684e5238434c4b69314c6e644d6b363142416b78685f767444673042687977344b5165534264674979303134336732726f617072384175584b363139326e5f7356324f674e464d6b304b4e4a4e6c753643306f6f4e4a454d43594551376d537a6c6e416e77316c715777744c614d5f38646c394d6762753032514f42384e7749324b4659656c75432d686378527758785a4d68442d4f37352d33367961495f6d43737a6c502d36706e4a426372347a4463324845424d736858637734795631624978514142636c78494a7656797643626a4452397a5a686b67445253304a6a3150676450386f352d516e4c6d477962337a786c2d674f672e335f316672797546414c662d2d3365414e4a424d6567"}
+    const sessionObj = JSON.parse(JSON.stringify({"masterKey":{"from":{"name":"Initiator"},"to":{"name":"Wallet desktop"},"port":29170,"na":"rjNlGN2yicmzghm4uf2HEg","nb":"Ur5M-HIeuQncEWsLzATAZA","secret":"onQ0WzIamp30lGLU-XBIxV-MUNVKxtHbCSqLLD83z9o"},"code":"65794a68624763694f694a6b615849694c434a6c626d4d694f694a424d6a553252304e4e496e302e2e77743438556751305a7a686e695043742e3654305057786e554f4458337630327957356633334b784f796c4550766261414d5a325f4b4c533074517839415671596c3058506535647142425633643077715f48464c446e46316352317650335230487765625346494d3156396b53547277726d5f592d37324278476d4836414d744652495a5070714a425359636a3155734f4a6b656235514b53347332324d386f734a7952477234526c5f584d78385231505a7a4133455641746f2d48483476395461756977794b3354485046337761374f5f6f617872454c4d4647326b424c474559705033617038427a4e777359596c31726c4663617874303369743845344f5a5242322d75514a6c564f4648316d5844456e4358336a736432532d7a4e3043794675762d32794266414d4938437041485f7045755f6e6a5a7154596f73485555534747664e334c514179785645745f6e54506f6949346937587a7a3737714b514752316948536d5239556d73596748504b4e5031724744706551724b476341634c506c735f4a4f465a505166412e4d75643232506432434d7266465a776e2d314c474877"}))
 
     let consumerWallet: WalletApi
 
-    let dataSharingAgreement: WalletComponents.Schemas.DataSharingAgreement
-
+    console.log(sessionObj)
     // Setup consumer wallet
     const transport = new HttpInitiatorTransport()
+    console.log(1)
     const session = await Session.fromJSON(transport, sessionObj)
+    console.log(2)
     consumerWallet = new WalletApi(session)
+    console.log(3)
+    const identityList = consumerWallet.identities.list()
 
-    dataSharingAgreement = await import('../test/dataSharingAgreement.json') as WalletComponents.Schemas.DataSharingAgreement
+    console.log(identityList)
 
-    const consumerDid = 'did:ethr:i3m:0x037e1117d84099a5763f763960f993956dc17aacd2af06cd8a236584a547ec3fe3'
+    // let dataSharingAgreement: WalletComponents.Schemas.DataSharingAgreement
+    // dataSharingAgreement = await import('../test/dataSharingAgreement.json') as WalletComponents.Schemas.DataSharingAgreement
 
-    // consumer stores agreement
-    const resource1 = await consumerWallet.resources.create({
-      type: 'Contract',
-      identity: consumerDid,
-      resource: {
-        dataSharingAgreement,
-        keyPair: {
-          publicJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.publicJwk)), true),
-          privateJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.privateJwk)), true)
-        }
-      }
-    })
+    // const consumerDid = 'did:ethr:i3m:0x037e1117d84099a5763f763960f993956dc17aacd2af06cd8a236584a547ec3fe3'
 
-    console.log(resource1)
+    // // consumer stores agreement
+    // const resource1 = await consumerWallet.resources.create({
+    //   type: 'Contract',
+    //   identity: consumerDid,
+    //   resource: {
+    //     dataSharingAgreement,
+    //     keyPair: {
+    //       publicJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.publicJwk)), true),
+    //       privateJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.privateJwk)), true)
+    //     }
+    //   }
+    // })
+
+    // console.log(resource1)
 }
 
 nrp()

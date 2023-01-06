@@ -7,6 +7,7 @@ import { env } from '../config/env';
 import mqttinit from '../mqtt/mqttInit';
 import npsession from '../session/np.session';
 import providerWallet from '../config/providerOperatorWallet';
+import { parseJwk } from '@i3m/non-repudiation-library';
 
 export async function newData(req: Request, res: Response, next: NextFunction) {
     try {       
@@ -95,8 +96,9 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
                     } else {
                 
                         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = JSON.parse(selectResult.DataExchangeAgreement)
-                        dataExchangeAgreement.orig = JSON.stringify(dataExchangeAgreement.orig)
-                        dataExchangeAgreement.dest = JSON.stringify(dataExchangeAgreement.dest)
+
+                        dataExchangeAgreement.orig = await parseJwk(JSON.parse(dataExchangeAgreement.orig), true)
+                        dataExchangeAgreement.dest = await parseJwk(JSON.parse(dataExchangeAgreement.dest), true)
 
                         const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(selectResult.ProviderPrivateKey)
 

@@ -30,7 +30,7 @@ export default async (): Promise<typeof agreementRouter> => {
 
     agreementRouter.get('/agreement/getAgreementId/:exchangeId', agreementController.getAgreementId)
     agreementRouter.get('/agreement/getDataExchangeAgreement/:agreementId', requestProcess.listOfVerificationReqProcessing, requestValidation, agreementController.getDataExchangeAgreement)
-    agreementRouter.post('/agreement/dataExchangeAgreementInfo', requestProcess.dataExchangeAgreementInfoProcessing, requestValidation, agreementController.prerequisiteInfo)
+    agreementRouter.post('/agreement/dataSharingAgreementInfo', requestProcess.dataExchangeAgreementInfoProcessing, requestValidation, agreementController.prerequisiteInfo)
 
     return agreementRouter
 }
