@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import jwtDecode, { JwtPayload } from "jwt-decode";
 import { HttpInitiatorTransport, Session } from '@i3m/wallet-protocol';
 import { WalletApi } from '@i3m/wallet-protocol-api';
+import { parseJwk } from '@i3m/non-repudiation-library';
 
 const consumerJwks = {
     publicJwk: {
@@ -117,6 +118,20 @@ async function streamSubscribe() {
         const session = await Session.fromJSON(transport, sessionObj)
         const consumerWallet = new WalletApi(session)
 
+        const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
+
+        // Add contract to wallet
+        await consumerWallet.resources.create({
+          type: 'Contract',
+          resource: {
+            dataSharingAgreement,
+            keyPair: {
+              publicJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.publicJwk)), true),
+              privateJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.privateJwk)), true)
+            }
+          }
+        })
+
         // Select an identity to use. In this example we get the one with alias set to 'consumer'
         const availableIdentities = await consumerWallet.identities.list()
 
@@ -125,7 +140,6 @@ async function streamSubscribe() {
 
         const consumerDltAgent = new nonRepudiationLibrary.I3mWalletAgentDest(consumerWallet, consumerDid.did)
 
-        const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
         const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = dataSharingAgreement.dataExchangeAgreement
         const consumerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(JSON.stringify(consumerJwks.privateJwk))
 
