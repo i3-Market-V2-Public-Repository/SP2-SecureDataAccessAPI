@@ -4,6 +4,8 @@ import { env } from '../config/env';
 import 'isomorphic-fetch';
 import { HttpInitiatorTransport, Session } from '@i3m/wallet-protocol'
 import { WalletApi } from '@i3m/wallet-protocol-api'
+import { WalletComponents } from '@i3m/wallet-desktop-openapi/types'
+import { parseJwk } from '@i3m/non-repudiation-library';
 
 const consumerJwks = {
     publicJwk: {
@@ -103,7 +105,7 @@ const sharingAgreement = {
   }
 
 // Info needed to make a request for batch
-const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY2ODY5MDcyNiwic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDNlZGRjYzU0YmZiZGNlNGZiZDU5OGY0ODI3MzUxZmViMjMxMGQwMDVmYjFkNTMxNDVlNjc4N2QwYTZmN2IwZjVmIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjY4NjA0MzI2fQ.xnGXN3H754Hz1Y7bdJgmxTxSY59imspJLDmTwq6VUkQ"
+const bearerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwLjAuMC4wIiwiYXVkIjoiMC4wLjAuMCIsImV4cCI6MTY3MzM2MzQ3Mywic3ViIjoiZGlkOmV0aHI6aTNtOjB4MDM3ZTExMTdkODQwOTlhNTc2M2Y3NjM5NjBmOTkzOTU2ZGMxN2FhY2QyYWYwNmNkOGEyMzY1ODRhNTQ3ZWMzZmUzIiwic2NvcGUiOiJvcGVuaWQgdmMgdmNlOmNvbnN1bWVyIiwiaWF0IjoxNjczMjc3MDczfQ.ETOgJcn7vo6LyazS-NI1--FyBqLe8O9fJCNMJrRK_po"
 const agreementId = 17
 const data = "exampledata.7z"
 let blockId = "null"
@@ -127,9 +129,20 @@ const oneBlock = async () => {
     // The consumer DID
     const consumerDid = availableIdentities[0]
 
+    const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
+
+    await consumerWallet.resources.create({
+      type: 'Contract',
+      resource: {
+        dataSharingAgreement,
+        keyPair: {
+          publicJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.publicJwk)), true),
+          privateJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.privateJwk)), true)
+        }
+      }
+    })
     const consumerDltAgent = new nonRepudiationLibrary.I3mWalletAgentDest(consumerWallet, consumerDid.did)
 
-    const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
     const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = dataSharingAgreement.dataExchangeAgreement
     const consumerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(JSON.stringify(consumerJwks.privateJwk))
     
@@ -191,6 +204,19 @@ const oneFile = async () => {
     const session = await Session.fromJSON(transport, sessionObj)
     const consumerWallet = new WalletApi(session)
 
+    const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
+
+    await consumerWallet.resources.create({
+      type: 'Contract',
+      resource: {
+        dataSharingAgreement,
+        keyPair: {
+          publicJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.publicJwk)), true),
+          privateJwk: await parseJwk(JSON.parse(JSON.stringify(consumerJwks.privateJwk)), true)
+        }
+      }
+    })
+
     // Select an identity to use. In this example we get the one with alias set to 'consumer'
     const availableIdentities = await consumerWallet.identities.list()
 
@@ -199,7 +225,6 @@ const oneFile = async () => {
 
     const consumerDltAgent = new nonRepudiationLibrary.I3mWalletAgentDest(consumerWallet, consumerDid.did)
 
-    const dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
     const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = dataSharingAgreement.dataExchangeAgreement
     const consumerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(JSON.stringify(consumerJwks.privateJwk))
 
