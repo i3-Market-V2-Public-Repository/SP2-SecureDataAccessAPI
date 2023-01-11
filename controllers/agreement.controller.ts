@@ -252,7 +252,7 @@ export async function prerequisiteInfo(req: Request, res: Response, next: NextFu
         const update = 'UPDATE DataExchangeAgreements SET ConsumerPublicKey=?, ProviderPublicKey=?, ProviderPrivateKey=?, DataSharingAgreement=?, DataExchangeAgreement=? WHERE AgreementId=?'
 
         const insertParams = [info.agreementId, JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.dest), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.orig), 
-                             JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement)]
+                             JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataSharingAgreement), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement)]
         const selectParams = [info.agreementId]
         const updateParams = [JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.dest), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement.orig), 
                             JSON.stringify(info.providerPrivateKey), JSON.stringify(info.dataSharingAgreement), JSON.stringify(info.dataSharingAgreement.dataExchangeAgreement), info.agreementId]

@@ -107,19 +107,12 @@ async function nrp () {
 
   let providerOperatorWallet: ServerWallet
 
-  let dataSharingAgreement: WalletComponents.Schemas.DataSharingAgreement
-
-  // Provider info
-  //const providerDid = 'did:ethr:i3m:0x02c1e51dbe7fa3c3e89df33495f241316d9554b5206fcef16d8108486285e38c27'
-
   const keyHex = env.providerDltSigningKeyHex
 
   // Setup provider wallet
   providerOperatorWallet = await serverWalletBuilder({ password: 'password', reset: true, filepath: './test/wallet' })
 
-  dataSharingAgreement = JSON.parse(JSON.stringify(sharingAgreement))
-
-  //console.log(dataSharingAgreement)
+  const dataSharingAgreement = await import('./stream/stream-dataSharingAgreement.json') as WalletComponents.Schemas.DataSharingAgreement
 
   // Import DLT account
   await providerOperatorWallet.importDid({
@@ -131,49 +124,17 @@ async function nrp () {
    // The provider DID
    const providerDid = availableIdentities[0]
    console.log(providerDid)
+
    // The provider address on the DLT
    const providerDltAddress = nonRepudiationLibrary.getDltAddress(keyHex)
    console.log(providerDltAddress)
 
   const { signatures, ...payload } = dataSharingAgreement
 
-  //console.log(payload)
 
-  //dataSharingAgreement.signatures.providerSignature = (await providerOperatorWallet.identitySign({ did: providerDid.did }, { type: 'JWT', data: { payload } })).signature
-  //console.log(dataSharingAgreement.signatures.providerSignature)
+  dataSharingAgreement.signatures.providerSignature = (await providerOperatorWallet.identitySign({ did: providerDid.did }, { type: 'JWT', data: { payload } })).signature
+  console.log(dataSharingAgreement.signatures.providerSignature)
 
-  await providerOperatorWallet.resourceCreate({
-    type: 'Contract',
-    resource: {
-      dataSharingAgreement,
-      keyPair: {
-        publicJwk: await parseJwk(JSON.parse(JSON.stringify(providerJwks.publicJwk)), true),
-        privateJwk: await parseJwk(JSON.parse(JSON.stringify(providerJwks.privateJwk)), true)
-      }
-    }
-  })
-
-  const providerDltAgent = new nonRepudiationLibrary.I3mServerWalletAgentOrig(providerOperatorWallet, providerDid.did)
-
-  const dataExchangeAgreement: nonRepudiationLibrary.DataExchangeAgreement = dataSharingAgreement.dataExchangeAgreement
-
-  console.log(dataExchangeAgreement)
-  // dataExchangeAgreement.orig = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.orig)), true)
-  // dataExchangeAgreement.dest = await parseJwk(JSON.parse(JSON.stringify(dataExchangeAgreement.dest)), true)
-
-  const providerPrivateKey: nonRepudiationLibrary.JWK = JSON.parse(JSON.stringify(providerJwks.privateJwk))
-
-  const block = 'text'
-  const rawBufferData = Buffer.from(block)
-  const npProvider = new nonRepudiationLibrary.NonRepudiationProtocol.NonRepudiationOrig(dataExchangeAgreement, providerPrivateKey, rawBufferData, providerDltAgent)
-
-  const poo = await npProvider.generatePoO()
-
-  await providerOperatorWallet.resourceCreate({
-    type: 'NonRepudiationProof',
-    resource: poo.jws
-  })
-  console.log(poo)
 }
 
 nrp()

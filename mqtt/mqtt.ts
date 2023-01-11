@@ -118,7 +118,7 @@ export async function mqttProcess(mqttClient: mqtt.MqttClient) {
             // Store PoR in the wallet
             await providerOperatorWallet!.resourceCreate({
                 type: 'NonRepudiationProof',
-                resource: por.jws
+                resource: por
             })
 
             const pop = await npProvider.generatePoP()

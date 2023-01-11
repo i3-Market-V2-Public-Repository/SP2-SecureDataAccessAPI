@@ -61,14 +61,16 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
                 }
             }
 
+            console.log(session.stream?.payment)
+            
             if (session.stream?.agreement.dataStream === true){
 
-                if (session.batch?.agreement.pricingModel.fee === 0 ) {
-                    session.batch.payment = true
+                if (session.stream?.agreement.pricingModel.fee === 0 ) {
+                    session.stream.payment = true
                 }
                 
 
-                if (session.batch?.payment === false) {
+                if (session.stream?.payment === false) {
                     const selectPayment = 'SELECT Payment, ConsumerDid FROM MarketFeePayments WHERE AgreementId = ?'
                     const selectPaymentParams = [agreementId]
         
@@ -78,12 +80,12 @@ export async function newData(req: Request, res: Response, next: NextFunction) {
                     if (!selectPaymentResult) {
                         client.publish(`/to/${row.ConsumerDid}/${row.OfferingId}/${row.AgreementId}`, `ErrorMessage: Consumer with did ${row.ConsumerDid} didn't pay for agreementId ${agreementId}...`, {qos:2})
                     } else {
-                        session.batch.payment = true
+                        session.stream.payment = true
                     }
                     
                 }
 
-                if (session.batch!.payment === true) {
+                if (session.stream!.payment === true) {
 
                     const select = 'SELECT DataExchangeAgreement, ProviderPrivateKey, ConsumerPublicKey FROM DataExchangeAgreements WHERE AgreementId = ?'
                     const selectParams = [agreementId]
