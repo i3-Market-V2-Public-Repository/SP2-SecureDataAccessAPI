@@ -15,7 +15,7 @@ services:
     env_file:
       - .env
     volumes:
-       - ./tmp/dataAccessDatabase.db3:/tmp/dataAccessDatabase.db3
+      - ./tmp/dataAccessDatabase.db3:/tmp/dataAccessDatabase.db3
     ports:
       - ${ADDRESS:-0.0.0.0}:${PORT:-3000}:${PORT:-3000}
     depends_on:
