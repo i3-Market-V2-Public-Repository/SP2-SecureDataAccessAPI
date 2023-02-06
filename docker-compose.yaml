@@ -7,7 +7,7 @@ services:
       args: 
         USER_ID: ${USER_ID-1000}
         GROUP_ID: ${GROUP_ID-1000}
-    image: registry.gitlab.com/i3-market/code/sp2/secure-data-access-api:3.0.3
+    image: registry.gitlab.com/i3-market/code/sp2/secure-data-access-api:3.0.4
     container_name: data-access-api
     networks:
       - dataaccessserver_i3m
